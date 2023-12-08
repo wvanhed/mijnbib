@@ -27,3 +27,7 @@ build:
 	pip install --upgrade pip
 	pip install --upgrade build
 	python -m build
+
+publish:
+	python3 -m pip install --upgrade twine
+	twine upload dist/*
