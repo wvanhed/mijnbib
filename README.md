@@ -26,8 +26,28 @@ Bijvoorbeeld, het opvragen van je ontleende items kan als volgt (na installatie)
     loans = mb.get_loans(account_id)
     print(loans)
 
+Voor een meer leesbare versie, gebruik `pprint()`:
+
+    import pprint
+    pprint.pprint([l for l in loans])
+
+    [Loan(title='Erebus',
+      loan_from=datetime.date(2023, 11, 25),
+      loan_till=datetime.date(2023, 12, 23),
+      author='Palin, Michael',
+      type='Boek',
+      extendable=True,
+      extend_url='https://gent.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123/uitleningen/verlengen?loan-ids=789',
+      extend_id='789',
+      branchname='Gent Hoofdbibliotheek',
+      id='456789',
+      url='https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789',
+      cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium')]
+
+
+
 Voor meer voorbeelden, zie de code in de folder `examples`.
-Daarin wordt ook `pprint` gebruikt voor een meer leesbare output.
+Daarin wordt ook `asdict` gebruikt voor conversie naar een dictionary.
 
 ## Opmerkingen
 
@@ -46,8 +66,10 @@ op een gelijkaardige manier de bibliotheek.be website.
 
 ## Development
 
-To install all dependecies for development, install (in a virtualenv) via:
+To install all dependencies for development, install (in a virtualenv) via:
 
+    python3 -m venv venv3x
+    . venv3x/bin/activate
     pip install -e .[dev]      # 'dev' is defined in pyproject.toml
 
 Running the tests and applying code formatting can be done via:

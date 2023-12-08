@@ -1,6 +1,6 @@
 """
 Webscraper module, for interacting with the mijn.bibliotheek.be website.
-Created on July 14, 2015
+Created (initial version) on July 14, 2015
 
 For example usage of this module, see the main method at the bottom of the file 
 """
