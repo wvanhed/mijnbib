@@ -875,6 +875,7 @@ class Loan:
     id: str = ""
     url: str = ""
     cover_url: str = ""
+    # TODO: add account_id (Also needed for extending multiple loans)
 
 
 @dataclass
