@@ -87,7 +87,7 @@ class MijnBibliotheek:
         url = self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen"
         html_string = self._open_account_loans_page(url)
         try:
-            loans = self._parse_account_loan_page(html_string, self.BASE_URL)
+            loans = self._parse_account_loans_page(html_string, self.BASE_URL)
         except Exception as e:
             raise IncompatibleSourceError(f"Problem scraping loans ({str(e)})", "") from e
         return loans
@@ -448,7 +448,7 @@ class MijnBibliotheek:
         return item_count
 
     @classmethod
-    def _parse_account_loan_page(cls, html: str, base_url: str) -> list[Loan]:
+    def _parse_account_loans_page(cls, html: str, base_url: str) -> list[Loan]:
         """Return loans
 
         >>> html_string='''
@@ -498,7 +498,7 @@ class MijnBibliotheek:
         ... </div>
         ... </div>
         ... '''
-        >>> MijnBibliotheek._parse_account_loan_page(html_string,"https://city.bibliotheek.be") # doctest: +NORMALIZE_WHITESPACE
+        >>> MijnBibliotheek._parse_account_loans_page(html_string,"https://city.bibliotheek.be") # doctest: +NORMALIZE_WHITESPACE
         [Loan(title='Erebus', loan_from=datetime.date(2023, 11, 25), loan_till=datetime.date(2023, 12, 23),
             author='Palin, Michael', type='Boek', extendable=True,
             extend_url='https://city.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/374052/uitleningen/verlengen?loan-ids=6207416',
