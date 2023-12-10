@@ -38,7 +38,7 @@ def test_parse_item_count_from_li():
 
 def test_parse_account_loans_page():
     # Happy flow test --> see doctest
-    assert MijnBibliotheek._parse_account_loans_page("", "") == []
+    assert MijnBibliotheek._parse_account_loans_page("", "", "") == []
 
 
 def test_parse_account_reservations_page():
