@@ -1,8 +1,9 @@
 """
-Webscraper module, for interacting with the mijn.bibliotheek.be website.
+Webscraper module for interacting with the mijn.bibliotheek.be website.
 Created (initial version) on July 14, 2015
 
-For example usage of this module, see the main method at the bottom of the file 
+For usage of this module, see the examples folder and the docstrings
+in the MijnBibliotheek class and its public methods.
 """
 
 from __future__ import annotations
