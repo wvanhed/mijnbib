@@ -8,18 +8,11 @@ logging.basicConfig(format="%(levelname)s %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
 pp = pprint.PrettyPrinter()
 
-try:
-    import test_config as test_config
-except ModuleNotFoundError:
-    print("First, create a file 'test_config.py' with the required data")
-    exit(-1)
-
-# Create a test_config file with the following variables
-# Or assign directly here
-city = test_config.city
-username = test_config.mijnbib_user.split("#")[0]
-password = test_config.mijnbib_pass
-account_id = test_config.mijnbib_user.split("#")[1]
+# Change these values !!!
+city = "gent"
+username = "johndoe"
+password = "password"
+account_id = "123456"
 
 print("\nFetching accounts...")
 mb = MijnBibliotheek(username, password, city)
