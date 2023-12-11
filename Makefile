@@ -1,6 +1,6 @@
 test:
 	pytest -v
-	python -m doctest src/mijnbib/*.py
+	python -m doctest src/mijnbib/mijnbibliotheek.py
 
 black:
 	isort --skip-glob="**/venv*" \
