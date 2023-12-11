@@ -1,3 +1,4 @@
+# ruff: noqa: F401
 # So user can do e.g.
 #   from mijnbib import MijnBibliotheek, Loan
 
