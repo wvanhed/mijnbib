@@ -1,6 +1,7 @@
 import argparse
 import configparser
 import pprint as pp
+import sys
 
 from mijnbib import MijnBibliotheek
 
@@ -92,13 +93,16 @@ def main():
     args = parser.parse_args()
 
     required = ["username", "password", "city"]
-    # print(args.get()"username"))
     for r in required:
         if getattr(args, r) is None:
-            print(f"Argument '{r}' is required")
-            exit(-1)
+            print(
+                f"Parameter '{r}' is required. "
+                f"Either specify as an argument, or in file '{CONFIG_FILE}'"
+            )
+            sys.exit(-1)
 
-    args.func(args)  # calls the appropriate subcommand
+    # call the appropriate subcommand
+    args.func(args)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 *.dat
 *venv*
 **/test_config.py
+mijnbib.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
