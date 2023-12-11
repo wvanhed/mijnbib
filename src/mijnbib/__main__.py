@@ -1,5 +1,6 @@
 import argparse
 import configparser
+import logging
 import pprint as pp
 import sys
 
@@ -67,6 +68,7 @@ def main():
         description="Interact with bibliotheek.be website, e.g. to retrieve loans, "
         "reservations or accounts.",
     )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Show debug logging")
     subparsers = parser.add_subparsers(required=True)
     parser_all = subparsers.add_parser(
         "all", parents=[common_parser], help="retrieve all information for all accounts"
@@ -91,6 +93,10 @@ def main():
     common_parser.set_defaults(**config.defaults())
 
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(format="%(levelname)s %(message)s")
+        logging.getLogger().setLevel(logging.DEBUG)
 
     required = ["username", "password", "city"]
     for r in required:
