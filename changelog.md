@@ -2,13 +2,13 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## Work in Progress (for next version)
+## v0.1.0 - 2023-12-17
 
-- new: Add account id to loan class
 - new: Add Makefile publish target
 - new: Use mijnbib.ini file for storing credentials
+- impr: Add account id to loan class
 - impr: Documentation improvements
 
-## v0.0.1  - 2023-12-08
+## v0.0.1 - 2023-12-08
 
 - Initial version
