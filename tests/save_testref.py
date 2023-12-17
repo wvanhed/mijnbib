@@ -4,27 +4,32 @@ When ran, it create reference files, which can be used in the mijnbibliotheek
 tests as expected data. When the files do not exist, the idea is that the 
 relevant tests will be skipped.
 """
+import configparser
 import pickle
 import sys
 from pathlib import Path
 
 from mijnbib.mijnbibliotheek import MijnBibliotheek
 
-try:
-    import test_config as test_config
-except ModuleNotFoundError:
-    print("First, create a file 'test_config.py' with the required data")
-    sys.exit(0)
-
+# File that holds credentials
+CONFIG_FILE = "mijnbib.ini"
+# Saving to the following files:
 REF_ACCOUNTS = "test_ref_accounts.dat"
 REF_LOANS = "test_ref_loans.dat"
 REF_HOLDS = "test_ref_holds.dat"
 REF_ALLINFO = "test_ref_allinfo.dat"
 
-username = test_config.mijnbib_user.split("#")[0]
-password = test_config.mijnbib_pass
-account_id = test_config.mijnbib_user.split("#")[1]
-city = test_config.city
+config = configparser.ConfigParser()
+config.read(CONFIG_FILE)
+
+try:
+    username = config["DEFAULT"]["username"]
+    password = config["DEFAULT"]["password"]
+    account_id = config["DEFAULT"]["accountid"]
+    city = config["DEFAULT"]["city"]
+except KeyError as e:
+    print(f"Create a file '{CONFIG_FILE}' that holds a section '[DEFAULT'] and the field {e}")
+    sys.exit(-1)
 
 
 def save_accounts():

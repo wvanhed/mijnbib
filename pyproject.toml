@@ -31,4 +31,3 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 
 [tool.isort]
 profile = "black"
-known_first_party = ["test_config"] # if placed in the root

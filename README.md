@@ -44,10 +44,13 @@ Voor een meer leesbare versie, gebruik `pprint()`:
       url='https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789',
       cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium')]
 
-
-
 Voor meer voorbeelden, zie de code in de folder `examples`.
 Daarin wordt ook `asdict` gebruikt voor conversie naar een dictionary.
+
+Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
+
+    python -m mijnbib loans
+    python -m mijnbib --help        # om alle opties te zien.
 
 ## Opmerkingen
 
@@ -80,9 +83,9 @@ Running the tests and applying code formatting can be done via:
 To work around the challenge of testing a web scraper, the following *snapshot
 testing* approach can be used to get some confidence when applying refactoring:
 
-1. Create a file `test_config.py` in the project root folder, and make it contain
-  the `city`, `username`, `password` and and `account_id` (see the next file for
-  expected variable naming and format)
+1. Create a file `mijnbib.ini` in the project root folder, and make it contain
+   a section `[DEFAULT]` holding the following parameters: `city`, `username`,
+   `password` and `account_id`
 2. Run `python tests/save_testref.py` to capture and store the current output
    (a couple of files will be created)
 4. Perform refactoring as needed

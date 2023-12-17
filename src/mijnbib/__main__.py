@@ -65,8 +65,18 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="mijnbib",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Interact with bibliotheek.be website, e.g. to retrieve loans, "
-        "reservations or accounts.",
+        "reservations or accounts.\n\n"
+        "Specify the required authentication parameters (username, password, ...) \n"
+        "as a parameter of the subcommando. See the help of a subcommando for all \n"
+        "parameters, e.g. `mijnbib --help all`\n"
+        "More convenient is creating a `mijnbib.ini` file containing the parameters:\n"
+        "   [DEFAULT]\n"
+        "   username = john\n"
+        "   password = 123456\n"
+        "   city = gent\n"
+        "   accountid = 456",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Show debug logging")
     subparsers = parser.add_subparsers(required=True)

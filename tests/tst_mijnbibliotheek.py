@@ -1,16 +1,25 @@
+import configparser
 import pickle
+import sys
 from pathlib import Path
 
 import pytest
 
-import test_config as test_config
 from mijnbib.mijnbibliotheek import MijnBibliotheek
 from tests.save_testref import REF_ACCOUNTS, REF_ALLINFO, REF_HOLDS, REF_LOANS
 
-username = test_config.mijnbib_user.split("#")[0]
-password = test_config.mijnbib_pass
-account_id = test_config.mijnbib_user.split("#")[1]
-city = test_config.city
+# Read credentials from config file
+CONFIG_FILE = "mijnbib.ini"
+config = configparser.ConfigParser()
+config.read(CONFIG_FILE)
+try:
+    username = config["DEFAULT"]["username"]
+    password = config["DEFAULT"]["password"]
+    account_id = config["DEFAULT"]["accountid"]
+    city = config["DEFAULT"]["city"]
+except KeyError as e:
+    print(f"Create a file '{CONFIG_FILE}' that holds a section '[DEFAULT'] and the field {e}")
+    sys.exit(-1)
 
 
 @pytest.mark.skipif(
