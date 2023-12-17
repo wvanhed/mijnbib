@@ -23,6 +23,7 @@ dev = ["black", "isort", "pytest", "ruff"]
 
 [project.urls]
 Homepage = "https://github.com/wvanhed/mijnbib"
+Changelog = "https://github.com/wvanhed/mijnbib/blob/main/changelog.md"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
