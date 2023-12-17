@@ -1,3 +1,5 @@
+all: clean blackcheck test build
+
 test:
 	pytest -v
 	python -m doctest src/mijnbib/mijnbibliotheek.py
