@@ -187,6 +187,7 @@ class MijnBibliotheek:
             IncompatibleSourceError
         """
         # TODO: would make more sense to return loan list (since final page is loan page)
+        # Perhaps retrieving those loans again, and check extendability would also be good idea.
         if not self._logged_in:
             self.login()
 
@@ -223,6 +224,9 @@ class MijnBibliotheek:
         # disclaimer: not sure if other codes are realistic
         success = True if response.code == 200 else False
 
+        if success:
+            _log.debug("Looks like extending the loan(s) was successful")
+
         # Try to add result details, but don't fail if we fail to parse details, it's tricky :-)
         try:
             # On submit, we arrive at "uitleningen" (loans) page, which lists the result
@@ -237,6 +241,29 @@ class MijnBibliotheek:
             details = {}
 
         return success, details
+
+    def extend_loans_by_ids(
+        self, acc_extids: list[tuple[str, str]], execute: bool = False
+    ) -> tuple[bool, dict]:
+        """Extend loan(s) via list of (account, extend_id) tuples. Will login first if needed.
+
+        For return value, exceptions thrown and more details, see `extend_loans()`
+
+        Args:
+            acc_eids: List of (account, extend_id) tuples
+            execute:  A development flag; set to True actually perform loan extension
+        """
+        if not acc_extids:
+            raise ValueError("List must not be empty.")
+        account_id, _extend_id = acc_extids[0]  # use first acc id for general account id
+        ids = [f"{acc_id}|{ext_id}" for (acc_id, ext_id) in acc_extids]
+        ids = ",".join(ids)
+        url = (
+            self.BASE_URL
+            + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen/verlengen"
+            + f"?loan-ids={ids}"
+        )
+        return self.extend_loans(url, execute)
 
     # *** INTERNAL METHODS ***
 
@@ -520,6 +547,7 @@ class MijnBibliotheek:
             )
             # Sometimes, this error is present
             if soup.find(string=re.compile(error_msg)) is not None:
+                # TODO: probably better to thrown an exception instead
                 _log.warning(
                     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
                 )
