@@ -3,6 +3,8 @@ all: clean blackcheck test build
 test:
 	pytest -v
 	python -m doctest src/mijnbib/mijnbibliotheek.py
+	python -m doctest src/mijnbib/parsers.py
+	python -m doctest src/mijnbib/models.py
 
 black:
 	isort --skip-glob="**/venv*" \

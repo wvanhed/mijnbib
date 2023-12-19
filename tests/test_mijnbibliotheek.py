@@ -1,6 +1,11 @@
 import datetime
 
-from mijnbib import MijnBibliotheek
+from mijnbib.parsers import (
+    AccountsListPageParser,
+    ExtendResponsePageParser,
+    LoansListPageParser,
+    ReservationsPageParser,
+)
 
 
 def test_mijnbib_available_imports():
@@ -23,27 +28,29 @@ def test_mijnbib_available_imports():
             "PluginError",
             "plugin_errors",
             "mijnbibliotheek",
+            "parsers",
+            "models",
         ]
     )
 
 
 def test_parse_accounts_list_page():
     # Happy flow test --> see doctest
-    assert MijnBibliotheek._parse_accounts_list_page("", "") == []
+    assert AccountsListPageParser("", "").parse() == []
 
 
 def test_parse_item_count_from_li():
-    assert MijnBibliotheek._parse_item_count_from_li("", "") is None
+    assert AccountsListPageParser._parse_item_count_from_li("", "") is None
 
 
 def test_parse_account_loans_page():
     # Happy flow test --> see doctest
-    assert MijnBibliotheek._parse_account_loans_page("", "", "") == []
+    assert LoansListPageParser("", "", "").parse() == []
 
 
 def test_parse_account_reservations_page():
     # Happy flow test --> see doctest
-    assert MijnBibliotheek._parse_account_reservations_page("") == []
+    assert ReservationsPageParser("").parse() == []
 
 
 def test_extract_html_from_response_script_tag():
@@ -72,7 +79,7 @@ def test_extract_html_from_response_script_tag():
     def clean_whitespace(s: str) -> str:
         return s.replace(" ", "").replace("\n", "")
 
-    actual_result = MijnBibliotheek._extract_html_from_response_script_tag(raw_html)
+    actual_result = ExtendResponsePageParser(raw_html)._extract_html_from_response_script_tag()
     assert clean_whitespace(actual_result) == clean_whitespace(expected_result)
 
 
@@ -90,7 +97,7 @@ def test_parse_extend_response_status_blob__success_case():
        </div>
     """
 
-    actual_result = MijnBibliotheek._parse_extend_response_status_blob(html_string)
+    actual_result = ExtendResponsePageParser._parse_extend_response_status_blob(html_string)
     assert actual_result == {
         "likely_success": True,
         "count": 1,
@@ -117,7 +124,7 @@ def test_parse_extend_response_status_blob__foutmelding_case():
        </div>
     """
 
-    actual_result = MijnBibliotheek._parse_extend_response_status_blob(html_string)
+    actual_result = ExtendResponsePageParser._parse_extend_response_status_blob(html_string)
     assert actual_result == {
         "likely_success": False,
         "count": 0,
