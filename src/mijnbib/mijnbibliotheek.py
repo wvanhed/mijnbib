@@ -81,8 +81,7 @@ class MijnBibliotheek:
         url = self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen"
         html_string = self._open_account_loans_page(url)
         try:
-            p = LoansListPageParser(html_string, self.BASE_URL, account_id)
-            loans = p.parse()
+            loans = LoansListPageParser(html_string, self.BASE_URL, account_id).parse()
         except Exception as e:
             raise IncompatibleSourceError(f"Problem scraping loans ({str(e)})", "") from e
         return loans
@@ -101,8 +100,7 @@ class MijnBibliotheek:
         url = self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/reservaties"
         html_string = self._open_account_loans_page(url)  #  same structure as for loans
         try:
-            p = ReservationsPageParser(html_string)
-            holds = p.parse()
+            holds = ReservationsPageParser(html_string).parse()
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping reservations ({str(e)})", ""
@@ -123,8 +121,7 @@ class MijnBibliotheek:
         response = self._br.open(url)  # pylint: disable=assignment-from-none
         html_string = response.read().decode("utf-8")  # type:ignore
         try:
-            p = AccountsListPageParser(html_string, self.BASE_URL)
-            accounts = p.parse()
+            accounts = AccountsListPageParser(html_string, self.BASE_URL).parse()
         except Exception as e:
             raise IncompatibleSourceError(f"Problem scraping accounts ({str(e)})", "") from e
         return accounts
