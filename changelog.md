@@ -2,9 +2,15 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## WIP
+
+- new: Add extend_by_ids
+- new: Add 'Makefile all' target
+- impr: refactor file organization
+
 ## v0.1.0 - 2023-12-17
 
-- new: Add Makefile publish target
+- new: Add 'Makefile publish' target
 - new: Use mijnbib.ini file for storing credentials
 - impr: Add account id to loan class
 - impr: Documentation improvements
