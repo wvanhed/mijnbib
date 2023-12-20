@@ -384,7 +384,6 @@ class AccountsListPageParser(Parser):
 class ReservationsPageParser(Parser):
     def __init__(self, html: str):
         self._html = html
-        # self._base_url = base_url
 
     def parse(self) -> list[Reservation]:
         """Return list of holds
@@ -532,7 +531,7 @@ class ReservationsPageParser(Parser):
 
 class ExtendResponsePageParser(Parser):
     def __init__(self, html: str):
-        self.html = html
+        self._html = html
 
     def parse(self) -> dict:
         """For dict structure, see the called method"""
@@ -551,7 +550,7 @@ class ExtendResponsePageParser(Parser):
             return s[s.find(start) + len(start) : s.rfind(end)]
 
         # find relevant snippet
-        soup = BeautifulSoup(self.html, "html.parser")
+        soup = BeautifulSoup(self._html, "html.parser")
         script_txt = soup.find(
             "script", string=re.compile("(Statusbericht|Foutmelding)")
         ).get_text()
