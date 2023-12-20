@@ -23,11 +23,12 @@ from mijnbib.parsers import (
     ReservationsPageParser,
 )
 from mijnbib.plugin_errors import (
-    AccessError,
     AuthenticationError,
     CanNotConnectError,
     ExtendLoanError,
     IncompatibleSourceError,
+    InvalidExtendLoanURL,
+    ItemAccessError,
 )
 
 _log = logging.getLogger(__name__)
@@ -54,8 +55,8 @@ class MijnBibliotheek:
         """Log in. Is auto-called by other methods if needed.
 
         Raises:
-            CanNotConnectError
             AuthenticationError
+            CanNotConnectError
             IncompatibleSourceError
         """
         url = self.BASE_URL + "/mijn-bibliotheek/aanmelden"
@@ -71,9 +72,9 @@ class MijnBibliotheek:
         """Return list of loans. Will login first if needed.
 
         Raises:
-            AccessError: something went wrong fetching loans
             AuthenticationError
             IncompatibleSourceError
+            ItemAccessError: something went wrong fetching loans
         """
         if not self._logged_in:
             self.login()
@@ -83,16 +84,18 @@ class MijnBibliotheek:
         try:
             loans = LoansListPageParser(html_string, self.BASE_URL, account_id).parse()
         except Exception as e:
-            raise IncompatibleSourceError(f"Problem scraping loans ({str(e)})", "") from e
+            raise IncompatibleSourceError(
+                f"Problem scraping loans ({str(e)})", html_body=""
+            ) from e
         return loans
 
     def get_reservations(self, account_id: str) -> list[Reservation]:
         """Return list of reservations. Will login first if needed.
 
         Raises:
-            AccessError: something went wrong fetching reservations
             AuthenticationError
             IncompatibleSourceError
+            ItemAccessError: something went wrong fetching reservations
         """
         if not self._logged_in:
             self.login()
@@ -103,7 +106,7 @@ class MijnBibliotheek:
             holds = ReservationsPageParser(html_string).parse()
         except Exception as e:
             raise IncompatibleSourceError(
-                f"Problem scraping reservations ({str(e)})", ""
+                f"Problem scraping reservations ({str(e)})", html_body=""
             ) from e
         return holds
 
@@ -111,6 +114,7 @@ class MijnBibliotheek:
         """Return list of accounts. Will login first if needed.
 
         Raises:
+            AuthenticationError
             IncompatibleSourceError
         """
         if not self._logged_in:
@@ -123,7 +127,9 @@ class MijnBibliotheek:
         try:
             accounts = AccountsListPageParser(html_string, self.BASE_URL).parse()
         except Exception as e:
-            raise IncompatibleSourceError(f"Problem scraping accounts ({str(e)})", "") from e
+            raise IncompatibleSourceError(
+                f"Problem scraping accounts ({str(e)})", html_body=""
+            ) from e
         return accounts
 
     def get_all_info(self, all_as_dicts=False) -> dict:
@@ -135,9 +141,9 @@ class MijnBibliotheek:
             all_as_dicts    When True, do not return dataclass objects, but dicts
                             instead.
         Raises:
-            AccessError: something went wrong fetching loans or reservations
             AuthenticationError
             IncompatibleSourceError
+            ItemAccessError: something went wrong fetching loans or reservations
         """
         info = {}
         accounts = self.get_accounts()
@@ -177,8 +183,10 @@ class MijnBibliotheek:
             The `details` element contains a dictionary with more details; consider
             it for debugging purposes.
         Raises:
-            ExtendLoanError: raised when a loan could not be extended
+            AuthenticationError
             IncompatibleSourceError
+            InvalidExtendLoanURL
+            ExtendLoanError
         """
         # TODO: would make more sense to return loan list (since final page is loan page)
         # Perhaps retrieving those loans again, and check extendability would also be good idea.
@@ -190,7 +198,7 @@ class MijnBibliotheek:
             response = self._br.open(extend_url)  # pylint: disable=assignment-from-none
         except mechanize.HTTPError as e:
             if e.code == 500:
-                raise ExtendLoanError(f"Probably invalid extend loan URL: {extend_url}")
+                raise InvalidExtendLoanURL(f"Probably invalid extend loan URL: {extend_url}")
             else:
                 raise e
 
@@ -278,7 +286,11 @@ class MijnBibliotheek:
                 "Can not find login form", html_body=html_string_start_page
             )
         except urllib.error.URLError as e:
-            raise CanNotConnectError(f"Error while trying to log in at: {url}  ({str(e)})")
+            # We specifically catch this because site periodically (maintenance?)
+            # throws a 500, 502 or 504
+            raise CanNotConnectError(
+                f"Error while trying to log in at: {url}  ({str(e)})", url
+            )
         return response
 
     def _validate_logged_in(self, response):
@@ -303,11 +315,11 @@ class MijnBibliotheek:
         except mechanize.HTTPError as e:
             if e.code == 500:
                 # duh, server crashes on incorrect or nonexisting ID in the link
-                raise AccessError(
+                raise ItemAccessError(
                     f"Loans url can not be opened. Likely incorrect or "
                     f"nonexisting account ID in the url '{acc_url}'"
                 ) from e
-            raise AccessError(
+            raise ItemAccessError(
                 f"Loans url can not be opened. Reason unknown. Error: {e}"
             ) from e
 

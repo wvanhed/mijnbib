@@ -1,53 +1,54 @@
-"""
-Defines the various errors that can be thrown be a plugin
-"""
-
-
 class PluginError(Exception):
-    pass
+    """Base exception."""
 
 
-class GeneralPluginError(PluginError):
-    pass
-
-
-class AccessError(PluginError):
-    pass
+# *** client-side errors ***
 
 
 class AuthenticationError(PluginError):
-    """Exception raised when authentication has failed."""
+    """Raised when authentication has failed."""
 
 
-class ExtendLoanError(PluginError):
-    """Exception raised when extending loan(s) failed."""
+class ItemAccessError(PluginError):
+    """Raised when an item (loan, reservation) could not be accessed.
+
+    This is likely a client-side error, but in rare cases might have a
+    server-side cause.
+    """
+
+
+class InvalidExtendLoanURL(PluginError):
+    """Raised when the extending loan(s) url is not considered valid."""
+
+
+# *** server-side errors ***
 
 
 class CanNotConnectError(PluginError):
-    """Exception raised when the source (usually a website) can not be reached.
+    """Raised when a url can not be reached.
 
-    Attributes:
-        url -- url that could not be reached
+    Args:
+        msg     Descriptive message of the error
+        url     Url that could not be reached
     """
 
-    def __init__(self, url=""):
+    def __init__(self, msg: str, url: str):
+        super().__init__(msg)
         self.url = url
-
-    def __str__(self):
-        return str(self.url)
 
 
 class IncompatibleSourceError(PluginError):
-    """Exception raised for any general errors in parsing the source.
+    """Raised for any general errors in parsing the source.
 
-    Attributes:
-        msg  -- explanation of the error
-        html_body -- html source that was used in parsing and caused error
+    Args:
+        msg         Descriptive message of the error
+        html_body   Html source that was used in parsing and caused error
     """
 
     def __init__(self, msg, html_body: str):
-        self.msg = msg
+        super().__init__(msg)
         self.html_body = html_body
 
-    def __str__(self):
-        return str(self.msg)
+
+class ExtendLoanError(PluginError):
+    """Raised when extending loan(s) failed for unclear reasons."""
