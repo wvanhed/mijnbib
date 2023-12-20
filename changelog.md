@@ -7,6 +7,7 @@ new: new feature /  impr: improvement /  fix: bug fix
 - new: Add extend_by_ids
 - new: Add 'Makefile all' target
 - impr: refactor file organization
+- impr: error handling (including rename and cleanup of custom errors)
 
 ## v0.1.0 - 2023-12-17
 
