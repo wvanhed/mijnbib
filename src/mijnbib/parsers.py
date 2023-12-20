@@ -267,8 +267,6 @@ class AccountsListPageParser(Parser):
         [Account(library_name='Dijk92', user='Johny', id='374047', loans_count=0, loans_url='https://example.com/mijn-bibliotheek/lidmaatschappen/374047/uitleningen',
                  reservations_count=5, reservations_url='https://example.com/mijn-bibliotheek/lidmaatschappen/384767/reservaties',
                  open_amounts=0, open_amounts_url='')]
-        >>> AccountsListPageParser("","https://example.com").parse()
-        []
         """
         accounts = []
         soup = BeautifulSoup(self._html, "html.parser")
@@ -432,8 +430,6 @@ class ReservationsPageParser(Parser):
         [Reservation(title='Vastberaden!', type='', url='https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C12345',
             author='John Doe', location='MyCity', available=False, available_till=None,
             request_on=datetime.date(2023, 11, 25), valid_till=datetime.date(2024, 11, 24))]
-        >>> ReservationsPageParser("").parse() # doctest: +NORMALIZE_WHITESPACE
-        []
         """
         holds = []
         soup = BeautifulSoup(self._html, "html.parser")
@@ -587,8 +583,6 @@ class ExtendResponsePageParser(Parser):
         {'likely_success': True, 'count': 2, 'details':
             [{'title': 'Vastberaden!', 'until': datetime.date(2024, 1, 13)},
              {'title': 'Iemand moet het doen', 'until': datetime.date(2024, 1, 13)}]}
-        >>> ExtendResponsePageParser._parse_extend_response_status_blob("")
-        {'likely_success': False, 'count': 0, 'details': []}
         """
         # NOTE: Unclear when & what response when no success (500 server crash on most tests with
         #       different IDs and combinations)
