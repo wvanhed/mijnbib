@@ -75,6 +75,9 @@ To install all dependencies for development, install (in a virtualenv) via:
     . venv3x/bin/activate
     pip install -e .[dev]      # 'dev' is defined in pyproject.toml
 
+You need `make` as well. For installation on Windows, see the options at
+<https://stackoverflow.com/a/32127632/50899>
+
 Running the tests and applying code formatting can be done via:
 
     make test
