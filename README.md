@@ -1,6 +1,6 @@
 # mijnbib
 
-Python API voor (mijn.) bibliotheek.be
+Python API voor bibliotheek.be (voorheen mijn.bibliotheek.be)
 
 Met deze Python library kan je jouw ontleende items, reservaties en
 accountinfo opvragen indien je een account hebt op <https://bibliotheek.be>.
