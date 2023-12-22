@@ -299,7 +299,7 @@ class AccountsListPageParser(Parser):
                 #         ":default-active-account"
                 #     )
                 #     details = json.loads(details)
-                # except AttributeError:
+                # except (AttributeError, json.JSONDecodeError):
                 #     details = {}
 
                 # Get id from <a href="/mijn-bibliotheek/lidmaatschappen/374047">
