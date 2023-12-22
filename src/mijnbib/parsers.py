@@ -123,7 +123,6 @@ class LoansListPageParser(Parser):
         for child in children:
             if child.name == "h2":  # we expect this to be the first child
                 branch_name = child.get_text().strip()
-                # TODO: check if this resolves to the same https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L306
             elif child.name == "div":  # loan div
                 # we convert child soup object to string, so called function
                 # can be used also easily for unit tests
@@ -292,7 +291,17 @@ class AccountsListPageParser(Parser):
                 "div", class_="my-library-user-library-account-list__account"
             )
             for acc_div in acc_divs:
-                # TODO: get details from json object, see https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L145C53-L145C75
+                # Some details also available in this json blob; perhaps useful for later
+                # (credits to see https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L145C53-L145C75)
+                # {'id', 'libraryName', 'userName', 'email', 'alertEmailSync', 'barcode'}
+                # try:
+                #     details = acc_div.find(attrs={":default-active-account": True}).get(
+                #         ":default-active-account"
+                #     )
+                #     details = json.loads(details)
+                # except AttributeError:
+                #     details = {}
+
                 # Get id from <a href="/mijn-bibliotheek/lidmaatschappen/374047">
                 acc_id = acc_div.a["href"].strip().split("/")[3]
 
