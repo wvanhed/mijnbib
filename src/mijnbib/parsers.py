@@ -9,6 +9,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 from mijnbib.models import Account, Loan, Reservation
+from mijnbib.plugin_errors import TemporarySiteError
 
 _log = logging.getLogger(__name__)
 
@@ -110,10 +111,12 @@ class LoansListPageParser(Parser):
             )
             # Sometimes, this error is present
             if soup.find(string=re.compile(error_msg)) is not None:
-                # TODO: probably better to thrown an exception instead
-                _log.warning(
+                raise TemporarySiteError(
                     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
                 )
+                # _log.warning(
+                #     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
+                # )
             return loans
 
         # Unfortunately, the branch names are interwoven siblings of the loans,

@@ -52,3 +52,7 @@ class IncompatibleSourceError(PluginError):
 
 class ExtendLoanError(PluginError):
     """Raised when extending loan(s) failed for unclear reasons."""
+
+
+class TemporarySiteError(PluginError):
+    """Raised when the site reports a temporary error."""

@@ -29,6 +29,7 @@ from mijnbib.plugin_errors import (
     IncompatibleSourceError,
     InvalidExtendLoanURL,
     ItemAccessError,
+    TemporarySiteError,
 )
 
 _log = logging.getLogger(__name__)
@@ -75,6 +76,7 @@ class MijnBibliotheek:
             AuthenticationError
             IncompatibleSourceError
             ItemAccessError: something went wrong fetching loans
+            TemporarySiteError
         """
         if not self._logged_in:
             self.login()
@@ -83,6 +85,8 @@ class MijnBibliotheek:
         html_string = self._open_account_loans_page(url)
         try:
             loans = LoansListPageParser(html_string, self.BASE_URL, account_id).parse()
+        except TemporarySiteError as e:
+            raise e
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping loans ({str(e)})", html_body=""
@@ -188,7 +192,7 @@ class MijnBibliotheek:
             InvalidExtendLoanURL
             ExtendLoanError
         """
-        # TODO: would make more sense to return loan list (since final page is loan page)
+        # NOTE: would make more sense to return loan list (since final page is loan page)
         # Perhaps retrieving those loans again, and check extendability would also be good idea.
         if not self._logged_in:
             self.login()

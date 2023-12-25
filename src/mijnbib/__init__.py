@@ -11,4 +11,5 @@ from .plugin_errors import (
     IncompatibleSourceError,
     ItemAccessError,
     PluginError,
+    TemporarySiteError,
 )
