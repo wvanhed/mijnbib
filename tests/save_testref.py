@@ -4,6 +4,7 @@ When ran, it create reference files, which can be used in the mijnbibliotheek
 tests as expected data. When the files do not exist, the idea is that the
 relevant tests will be skipped.
 """
+
 import configparser
 import pickle
 import sys

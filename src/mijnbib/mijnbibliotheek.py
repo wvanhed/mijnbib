@@ -318,7 +318,7 @@ class MijnBibliotheek:
             if e.code == 500:
                 # duh, server crashes on incorrect or nonexisting ID in the link
                 raise ItemAccessError(
-                    f"Loans url can not be opened. Likely incorrect or "
+                    "Loans url can not be opened. Likely incorrect or "
                     f"nonexisting account ID in the url '{acc_url}'"
                 ) from e
             raise ItemAccessError(
