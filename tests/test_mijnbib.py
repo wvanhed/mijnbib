@@ -16,7 +16,7 @@ def test_mijnbib_available_imports():
             "IncompatibleSourceError",
             "PluginError",
             "TemporarySiteError",
-            "plugin_errors",
+            "errors",
             "mijnbibliotheek",
             "parsers",
             "models",

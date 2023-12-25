@@ -15,14 +15,7 @@ from dataclasses import asdict
 
 import mechanize
 
-from mijnbib.models import Account, Loan, Reservation
-from mijnbib.parsers import (
-    AccountsListPageParser,
-    ExtendResponsePageParser,
-    LoansListPageParser,
-    ReservationsPageParser,
-)
-from mijnbib.plugin_errors import (
+from mijnbib.errors import (
     AuthenticationError,
     CanNotConnectError,
     ExtendLoanError,
@@ -30,6 +23,13 @@ from mijnbib.plugin_errors import (
     InvalidExtendLoanURL,
     ItemAccessError,
     TemporarySiteError,
+)
+from mijnbib.models import Account, Loan, Reservation
+from mijnbib.parsers import (
+    AccountsListPageParser,
+    ExtendResponsePageParser,
+    LoansListPageParser,
+    ReservationsPageParser,
 )
 
 _log = logging.getLogger(__name__)

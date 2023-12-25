@@ -8,8 +8,8 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
+from mijnbib.errors import TemporarySiteError
 from mijnbib.models import Account, Loan, Reservation
-from mijnbib.plugin_errors import TemporarySiteError
 
 _log = logging.getLogger(__name__)
 

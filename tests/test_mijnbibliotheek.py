@@ -4,7 +4,7 @@ from typing import BinaryIO
 import pytest
 
 from mijnbib import MijnBibliotheek
-from mijnbib.plugin_errors import AuthenticationError
+from mijnbib.errors import AuthenticationError
 
 
 class FakeMechanizeBrowser:

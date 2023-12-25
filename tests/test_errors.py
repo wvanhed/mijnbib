@@ -1,4 +1,4 @@
-from mijnbib.plugin_errors import CanNotConnectError, IncompatibleSourceError
+from mijnbib.errors import CanNotConnectError, IncompatibleSourceError
 
 
 def test_incompatiblesourceerror():
