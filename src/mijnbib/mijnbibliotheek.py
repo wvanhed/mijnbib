@@ -198,14 +198,16 @@ class MijnBibliotheek:
             response = self._br.open(extend_url)  # pylint: disable=assignment-from-none
         except mechanize.HTTPError as e:
             if e.code == 500:
-                raise InvalidExtendLoanURL(f"Probably invalid extend loan URL: {extend_url}")
+                raise InvalidExtendLoanURL(
+                    f"Probably invalid extend loan URL: {extend_url}"
+                ) from e
             else:
                 raise e
 
         try:
             self._br.select_form(id="my-library-extend-loan-form")
-        except mechanize.FormNotFoundError:
-            raise IncompatibleSourceError("Can not find extend loan form", html_body="")
+        except mechanize.FormNotFoundError as e:
+            raise IncompatibleSourceError("Can not find extend loan form", html_body="") from e
 
         if not execute:
             _log.warning("SIMULATING extending the loan. Will stop now.")
@@ -219,12 +221,12 @@ class MijnBibliotheek:
                 # (e.g. nonexisting id, ids that belong to different library accounts)
                 # However, if multiple id's, some of them *might* have been extended,
                 # even if 500 response
-                raise ExtendLoanError(f"Could not extend loans using url: {extend_url}")
+                raise ExtendLoanError(f"Could not extend loans using url: {extend_url}") from e
             else:
                 raise e
 
         # disclaimer: not sure if other codes are realistic
-        success = True if response.code == 200 else False
+        success = response.code == 200
 
         if success:
             _log.debug("Looks like extending the loan(s) was successful")
@@ -281,16 +283,16 @@ class MijnBibliotheek:
             self._br["email"] = self._username
             self._br["password"] = self._pwd
             response = self._br.submit()  # pylint: disable=assignment-from-none
-        except mechanize.FormNotFoundError:
+        except mechanize.FormNotFoundError as e:
             raise IncompatibleSourceError(
                 "Can not find login form", html_body=html_string_start_page
-            )
+            ) from e
         except urllib.error.URLError as e:
             # We specifically catch this because site periodically (maintenance?)
             # throws a 500, 502 or 504
             raise CanNotConnectError(
                 f"Error while trying to log in at: {url}  ({str(e)})", url
-            )
+            ) from e
         return response
 
     def _validate_logged_in(self, response):

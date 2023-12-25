@@ -136,9 +136,6 @@ class LoansListPageParser(Parser):
 
     def _get_loan_info_from_div(self, loan_div_html: str, branch: str) -> Loan:
         """Return loan from html loan_div blob"""
-        self._base_url
-        self._acc_id
-
         loan_div = BeautifulSoup(loan_div_html, "html.parser")
         loan = {}
 

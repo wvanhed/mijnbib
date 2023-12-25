@@ -32,3 +32,10 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 
 [tool.isort]
 profile = "black"
+
+[tool.ruff.lint]
+extend-select = [
+    "W", # warning
+    "B", # flake8-bugbear
+    # "SIM", # flake8-simplify, for simplified code
+]
