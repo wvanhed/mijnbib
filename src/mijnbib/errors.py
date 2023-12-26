@@ -1,15 +1,15 @@
-class PluginError(Exception):
+class MijnbibError(Exception):
     """Base exception."""
 
 
 # *** client-side errors ***
 
 
-class AuthenticationError(PluginError):
+class AuthenticationError(MijnbibError):
     """Raised when authentication has failed."""
 
 
-class ItemAccessError(PluginError):
+class ItemAccessError(MijnbibError):
     """Raised when an item (loan, reservation) could not be accessed.
 
     This is likely a client-side error, but in rare cases might have a
@@ -17,14 +17,14 @@ class ItemAccessError(PluginError):
     """
 
 
-class InvalidExtendLoanURL(PluginError):
+class InvalidExtendLoanURL(MijnbibError):
     """Raised when the extending loan(s) url is not considered valid."""
 
 
 # *** server-side errors ***
 
 
-class CanNotConnectError(PluginError):
+class CanNotConnectError(MijnbibError):
     """Raised when a url can not be reached.
 
     Args:
@@ -37,7 +37,7 @@ class CanNotConnectError(PluginError):
         self.url = url
 
 
-class IncompatibleSourceError(PluginError):
+class IncompatibleSourceError(MijnbibError):
     """Raised for any general errors in parsing the source.
 
     Args:
@@ -50,9 +50,9 @@ class IncompatibleSourceError(PluginError):
         self.html_body = html_body
 
 
-class ExtendLoanError(PluginError):
+class ExtendLoanError(MijnbibError):
     """Raised when extending loan(s) failed for unclear reasons."""
 
 
-class TemporarySiteError(PluginError):
+class TemporarySiteError(MijnbibError):
     """Raised when the site reports a temporary error."""

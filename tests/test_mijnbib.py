@@ -14,7 +14,7 @@ def test_mijnbib_available_imports():
             "CanNotConnectError",
             "ExtendLoanError",
             "IncompatibleSourceError",
-            "PluginError",
+            "MijnbibError",
             "TemporarySiteError",
             "errors",
             "mijnbibliotheek",

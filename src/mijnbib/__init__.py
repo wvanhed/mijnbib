@@ -8,7 +8,7 @@ from .errors import (
     ExtendLoanError,
     IncompatibleSourceError,
     ItemAccessError,
-    PluginError,
+    MijnbibError,
     TemporarySiteError,
 )
 from .mijnbibliotheek import MijnBibliotheek
