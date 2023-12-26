@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import logging
 import urllib.error
-import urllib.parse
 from dataclasses import asdict
 
 import mechanize
