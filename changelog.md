@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.3.0 - 2023-12-27
+
+- new: rename base exception to MijnbibError
+- impr: general internal improvements
+
 ## v0.2.0 - 2023-12-20
 
 - new: Add extend_by_ids method

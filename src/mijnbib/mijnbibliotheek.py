@@ -10,25 +10,25 @@ from __future__ import annotations
 
 import logging
 import urllib.error
-import urllib.parse
 from dataclasses import asdict
 
 import mechanize
 
-from mijnbib.models import Account, Loan, Reservation
-from mijnbib.parsers import (
-    AccountsListPageParser,
-    ExtendResponsePageParser,
-    LoansListPageParser,
-    ReservationsPageParser,
-)
-from mijnbib.plugin_errors import (
+from mijnbib.errors import (
     AuthenticationError,
     CanNotConnectError,
     ExtendLoanError,
     IncompatibleSourceError,
     InvalidExtendLoanURL,
     ItemAccessError,
+    TemporarySiteError,
+)
+from mijnbib.models import Account, Loan, Reservation
+from mijnbib.parsers import (
+    AccountsListPageParser,
+    ExtendResponsePageParser,
+    LoansListPageParser,
+    ReservationsPageParser,
 )
 
 _log = logging.getLogger(__name__)
@@ -75,6 +75,7 @@ class MijnBibliotheek:
             AuthenticationError
             IncompatibleSourceError
             ItemAccessError: something went wrong fetching loans
+            TemporarySiteError
         """
         if not self._logged_in:
             self.login()
@@ -83,6 +84,8 @@ class MijnBibliotheek:
         html_string = self._open_account_loans_page(url)
         try:
             loans = LoansListPageParser(html_string, self.BASE_URL, account_id).parse()
+        except TemporarySiteError as e:
+            raise e
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping loans ({str(e)})", html_body=""
@@ -188,7 +191,7 @@ class MijnBibliotheek:
             InvalidExtendLoanURL
             ExtendLoanError
         """
-        # TODO: would make more sense to return loan list (since final page is loan page)
+        # NOTE: would make more sense to return loan list (since final page is loan page)
         # Perhaps retrieving those loans again, and check extendability would also be good idea.
         if not self._logged_in:
             self.login()
@@ -198,14 +201,16 @@ class MijnBibliotheek:
             response = self._br.open(extend_url)  # pylint: disable=assignment-from-none
         except mechanize.HTTPError as e:
             if e.code == 500:
-                raise InvalidExtendLoanURL(f"Probably invalid extend loan URL: {extend_url}")
+                raise InvalidExtendLoanURL(
+                    f"Probably invalid extend loan URL: {extend_url}"
+                ) from e
             else:
                 raise e
 
         try:
             self._br.select_form(id="my-library-extend-loan-form")
-        except mechanize.FormNotFoundError:
-            raise IncompatibleSourceError("Can not find extend loan form", html_body="")
+        except mechanize.FormNotFoundError as e:
+            raise IncompatibleSourceError("Can not find extend loan form", html_body="") from e
 
         if not execute:
             _log.warning("SIMULATING extending the loan. Will stop now.")
@@ -219,12 +224,12 @@ class MijnBibliotheek:
                 # (e.g. nonexisting id, ids that belong to different library accounts)
                 # However, if multiple id's, some of them *might* have been extended,
                 # even if 500 response
-                raise ExtendLoanError(f"Could not extend loans using url: {extend_url}")
+                raise ExtendLoanError(f"Could not extend loans using url: {extend_url}") from e
             else:
                 raise e
 
         # disclaimer: not sure if other codes are realistic
-        success = True if response.code == 200 else False
+        success = response.code == 200
 
         if success:
             _log.debug("Looks like extending the loan(s) was successful")
@@ -281,16 +286,16 @@ class MijnBibliotheek:
             self._br["email"] = self._username
             self._br["password"] = self._pwd
             response = self._br.submit()  # pylint: disable=assignment-from-none
-        except mechanize.FormNotFoundError:
+        except mechanize.FormNotFoundError as e:
             raise IncompatibleSourceError(
                 "Can not find login form", html_body=html_string_start_page
-            )
+            ) from e
         except urllib.error.URLError as e:
             # We specifically catch this because site periodically (maintenance?)
             # throws a 500, 502 or 504
             raise CanNotConnectError(
                 f"Error while trying to log in at: {url}  ({str(e)})", url
-            )
+            ) from e
         return response
 
     def _validate_logged_in(self, response):
@@ -316,7 +321,7 @@ class MijnBibliotheek:
             if e.code == 500:
                 # duh, server crashes on incorrect or nonexisting ID in the link
                 raise ItemAccessError(
-                    f"Loans url can not be opened. Likely incorrect or "
+                    "Loans url can not be opened. Likely incorrect or "
                     f"nonexisting account ID in the url '{acc_url}'"
                 ) from e
             raise ItemAccessError(

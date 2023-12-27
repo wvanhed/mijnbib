@@ -2,13 +2,14 @@
 # So user can do e.g.
 #   from mijnbib import MijnBibliotheek, Loan
 
-from .mijnbibliotheek import MijnBibliotheek
-from .models import Account, Loan, Reservation
-from .plugin_errors import (
+from .errors import (
     AuthenticationError,
     CanNotConnectError,
     ExtendLoanError,
     IncompatibleSourceError,
     ItemAccessError,
-    PluginError,
+    MijnbibError,
+    TemporarySiteError,
 )
+from .mijnbibliotheek import MijnBibliotheek
+from .models import Account, Loan, Reservation

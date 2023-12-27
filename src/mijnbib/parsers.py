@@ -8,6 +8,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
+from mijnbib.errors import TemporarySiteError
 from mijnbib.models import Account, Loan, Reservation
 
 _log = logging.getLogger(__name__)
@@ -110,10 +111,12 @@ class LoansListPageParser(Parser):
             )
             # Sometimes, this error is present
             if soup.find(string=re.compile(error_msg)) is not None:
-                # TODO: probably better to thrown an exception instead
-                _log.warning(
+                raise TemporarySiteError(
                     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
                 )
+                # _log.warning(
+                #     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
+                # )
             return loans
 
         # Unfortunately, the branch names are interwoven siblings of the loans,
@@ -123,7 +126,6 @@ class LoansListPageParser(Parser):
         for child in children:
             if child.name == "h2":  # we expect this to be the first child
                 branch_name = child.get_text().strip()
-                # TODO: check if this resolves to the same https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L306
             elif child.name == "div":  # loan div
                 # we convert child soup object to string, so called function
                 # can be used also easily for unit tests
@@ -137,9 +139,6 @@ class LoansListPageParser(Parser):
 
     def _get_loan_info_from_div(self, loan_div_html: str, branch: str) -> Loan:
         """Return loan from html loan_div blob"""
-        self._base_url
-        self._acc_id
-
         loan_div = BeautifulSoup(loan_div_html, "html.parser")
         loan = {}
 
@@ -292,7 +291,17 @@ class AccountsListPageParser(Parser):
                 "div", class_="my-library-user-library-account-list__account"
             )
             for acc_div in acc_divs:
-                # TODO: get details from json object, see https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L145C53-L145C75
+                # Some details also available in this json blob; perhaps useful for later
+                # (credits to see https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L145C53-L145C75)
+                # {'id', 'libraryName', 'userName', 'email', 'alertEmailSync', 'barcode'}
+                # try:
+                #     details = acc_div.find(attrs={":default-active-account": True}).get(
+                #         ":default-active-account"
+                #     )
+                #     details = json.loads(details)
+                # except (AttributeError, json.JSONDecodeError):
+                #     details = {}
+
                 # Get id from <a href="/mijn-bibliotheek/lidmaatschappen/374047">
                 acc_id = acc_div.a["href"].strip().split("/")[3]
 
@@ -384,7 +393,6 @@ class AccountsListPageParser(Parser):
 class ReservationsPageParser(Parser):
     def __init__(self, html: str):
         self._html = html
-        # self._base_url = base_url
 
     def parse(self) -> list[Reservation]:
         """Return list of holds
@@ -532,7 +540,7 @@ class ReservationsPageParser(Parser):
 
 class ExtendResponsePageParser(Parser):
     def __init__(self, html: str):
-        self.html = html
+        self._html = html
 
     def parse(self) -> dict:
         """For dict structure, see the called method"""
@@ -551,7 +559,7 @@ class ExtendResponsePageParser(Parser):
             return s[s.find(start) + len(start) : s.rfind(end)]
 
         # find relevant snippet
-        soup = BeautifulSoup(self.html, "html.parser")
+        soup = BeautifulSoup(self._html, "html.parser")
         script_txt = soup.find(
             "script", string=re.compile("(Statusbericht|Foutmelding)")
         ).get_text()

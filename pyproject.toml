@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mijnbib"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python API voor de website mijn.bibliotheek.be"
 readme = "README.md"
 authors = [{ name = "Ward Van Heddeghem", email = "wardvh@fastmail.fm" }]
@@ -32,3 +32,10 @@ python_files = ["tests.py", "test_*.py", "*_tests.py"]
 
 [tool.isort]
 profile = "black"
+
+[tool.ruff.lint]
+extend-select = [
+    "W", # warning
+    "B", # flake8-bugbear
+    # "SIM", # flake8-simplify, for simplified code
+]

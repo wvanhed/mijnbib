@@ -4,9 +4,23 @@ import logging
 import pprint as pp
 import sys
 
-from mijnbib import MijnBibliotheek
+from mijnbib import AuthenticationError, MijnBibliotheek
 
 CONFIG_FILE = "mijnbib.ini"
+
+
+def _do_login(args: argparse.Namespace):
+    print("Trying to log in ...")
+
+    print(f"City:    : {args.city}")
+    print(f"Username : {args.username}")
+
+    mb = MijnBibliotheek(args.username, args.password, args.city)
+    try:
+        mb.login()
+    except AuthenticationError as e:
+        print(str(e))
+    print(f"Logged in: {mb._logged_in}")
 
 
 def _do_all(args: argparse.Namespace):
@@ -98,6 +112,10 @@ def main():
         "reservations", parents=[common_parser], help="retrieve reservations for account id"
     )
     parser_all.set_defaults(func=_do_reservations)
+    parser_all = subparsers.add_parser(
+        "login", parents=[common_parser], help="just log in, and report if success or not"
+    )
+    parser_all.set_defaults(func=_do_login)
 
     # Add values from ini file as default values
     config = configparser.ConfigParser()
