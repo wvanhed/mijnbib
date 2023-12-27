@@ -11,6 +11,10 @@ Installeer via:
 
     pip install mijnbib
 
+Of, om een ugrade af te dwingen:
+
+    pip install --upgrade mijnbib
+
 ## Gebruik
 
 Bijvoorbeeld, het opvragen van je ontleende items kan als volgt (na installatie):

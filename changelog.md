@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## WIP
+## v0.3.0 - 2023-12-27
 
 - new: rename base exception to MijnbibError
 - impr: general internal improvements
