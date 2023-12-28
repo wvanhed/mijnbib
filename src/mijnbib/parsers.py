@@ -371,6 +371,7 @@ class AccountsListPageParser(Parser):
                     open_amounts_url=open_amounts_url,
                 )
                 accounts.append(account)
+        _log.debug("Number of accounts found: %s", len(accounts))
         return accounts
 
     @staticmethod

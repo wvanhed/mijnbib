@@ -60,11 +60,12 @@ class MijnBibliotheek:
             IncompatibleSourceError
         """
         url = self.BASE_URL + "/mijn-bibliotheek/aanmelden"
-        _log.debug(f"Will log in at url : {url}")
-        _log.debug(f"           with id : {self._username}")
+        _log.info(f"Will log in at url : {url}")
+        _log.info(f"           with id : {self._username}")
 
         response = self._log_in(url)
-        self._validate_logged_in(response)  # raises AuthenticationError if not ok
+        html = response.read().decode("utf-8") if response is not None else ""
+        self._validate_logged_in(html)  # raises AuthenticationError if not ok
 
         self._logged_in = True
 
@@ -77,6 +78,7 @@ class MijnBibliotheek:
             ItemAccessError: something went wrong fetching loans
             TemporarySiteError
         """
+        _log.info(f"Retrieving loans for account: '{account_id}'")
         if not self._logged_in:
             self.login()
 
@@ -100,6 +102,7 @@ class MijnBibliotheek:
             IncompatibleSourceError
             ItemAccessError: something went wrong fetching reservations
         """
+        _log.info(f"Retrieving reservations for account: '{account_id}'")
         if not self._logged_in:
             self.login()
 
@@ -120,11 +123,12 @@ class MijnBibliotheek:
             AuthenticationError
             IncompatibleSourceError
         """
+        _log.info(f"Retrieving accounts")
         if not self._logged_in:
             self.login()
 
         url = self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen"
-        _log.debug("Opening page 'lidmaatschappen' ... ")
+        _log.debug(f"Opening page '{url}' ... ")
         response = self._br.open(url)  # pylint: disable=assignment-from-none
         html_string = response.read().decode("utf-8")  # type:ignore
         try:
@@ -148,6 +152,7 @@ class MijnBibliotheek:
             IncompatibleSourceError
             ItemAccessError: something went wrong fetching loans or reservations
         """
+        _log.info(f"Retrieving all information")
         info = {}
         accounts = self.get_accounts()
         for a in accounts:
@@ -196,7 +201,7 @@ class MijnBibliotheek:
         if not self._logged_in:
             self.login()
 
-        _log.debug(f"Will extend loan via url: {extend_url}")
+        _log.info(f"Will extend loan via url: {extend_url}")
         try:
             response = self._br.open(extend_url)  # pylint: disable=assignment-from-none
         except mechanize.HTTPError as e:
@@ -260,6 +265,7 @@ class MijnBibliotheek:
             acc_eids: List of (account, extend_id) tuples
             execute:  A development flag; set to True actually perform loan extension
         """
+        _log.info(f"Extending loans via ids: '{acc_extids}'")
         if not acc_extids:
             raise ValueError("List must not be empty.")
         account_id, _extend_id = acc_extids[0]  # use first acc id for general account id
@@ -298,13 +304,12 @@ class MijnBibliotheek:
             ) from e
         return response
 
-    def _validate_logged_in(self, response):
+    def _validate_logged_in(self, html: str):
         _log.debug("Checking if login is successful ...")
-        html_string = response.read().decode("utf-8") if response is not None else ""
-        if "Profiel" not in html_string:
+        if "Profiel" not in html:
             if (
-                "privacyverklaring is gewijzigd" in html_string
-                or "akkoord met de privacyverklaring" in html_string
+                "privacyverklaring is gewijzigd" in html
+                or "akkoord met de privacyverklaring" in html
             ):
                 raise AuthenticationError(
                     "Login not accepted (likely need to accept privacy statement again)"
@@ -314,7 +319,7 @@ class MijnBibliotheek:
         _log.debug("Login was successful")
 
     def _open_account_loans_page(self, acc_url: str) -> str:
-        _log.debug(f"Opening page ({acc_url}) ... ")
+        _log.debug(f"Opening page '{acc_url}' ... ")
         try:
             response = self._br.open(acc_url)  # pylint: disable=assignment-from-none
         except mechanize.HTTPError as e:
