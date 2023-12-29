@@ -63,9 +63,8 @@ class MijnBibliotheek:
         _log.info(f"Will log in at url : {url}")
         _log.info(f"           with id : {self._username}")
 
-        response = self._log_in(url)
-        html = response.read().decode("utf-8") if response is not None else ""
-        self._validate_logged_in(html)  # raises AuthenticationError if not ok
+        login_handler = LoginByForm(self._username, self._pwd, url, self._br)
+        self._br = login_handler.login()  # May raise AuthenticationError
 
         self._logged_in = True
 
@@ -280,9 +279,39 @@ class MijnBibliotheek:
 
     # *** INTERNAL METHODS ***
 
-    def _log_in(self, url):
-        # NOTE: consider replacing with oauth-based authentication flow
+    def _open_account_loans_page(self, acc_url: str) -> str:
+        _log.debug(f"Opening page '{acc_url}' ... ")
+        try:
+            response = self._br.open(acc_url)  # pylint: disable=assignment-from-none
+        except mechanize.HTTPError as e:
+            if e.code == 500:
+                # duh, server crashes on incorrect or nonexisting ID in the link
+                raise ItemAccessError(
+                    "Loans url can not be opened. Likely incorrect or "
+                    f"nonexisting account ID in the url '{acc_url}'"
+                ) from e
+            raise ItemAccessError(
+                f"Loans url can not be opened. Reason unknown. Error: {e}"
+            ) from e
 
+        html = response.read().decode("utf-8") if response is not None else ""
+        return html
+
+
+class LoginByForm:
+    def __init__(self, username, password, url: str, br: mechanize.Browser):
+        self._username = username
+        self._pwd = password
+        self._url = url
+        self._br = br
+
+    def login(self) -> mechanize.Browser:
+        response = self._log_in(self._url)  # TODO: remove parameter
+        html = response.read().decode("utf-8") if response is not None else ""
+        self._validate_logged_in(html)  # raises AuthenticationError if not ok
+        return self._br
+
+    def _log_in(self, url):
         html_string_start_page = "not yet set"  # placeholder for troubleshooting
         try:
             _log.debug("Opening login page ... ")
@@ -317,21 +346,3 @@ class MijnBibliotheek:
             else:
                 raise AuthenticationError("Login not accepted")
         _log.debug("Login was successful")
-
-    def _open_account_loans_page(self, acc_url: str) -> str:
-        _log.debug(f"Opening page '{acc_url}' ... ")
-        try:
-            response = self._br.open(acc_url)  # pylint: disable=assignment-from-none
-        except mechanize.HTTPError as e:
-            if e.code == 500:
-                # duh, server crashes on incorrect or nonexisting ID in the link
-                raise ItemAccessError(
-                    "Loans url can not be opened. Likely incorrect or "
-                    f"nonexisting account ID in the url '{acc_url}'"
-                ) from e
-            raise ItemAccessError(
-                f"Loans url can not be opened. Reason unknown. Error: {e}"
-            ) from e
-
-        html = response.read().decode("utf-8") if response is not None else ""
-        return html
