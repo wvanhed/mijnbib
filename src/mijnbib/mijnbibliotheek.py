@@ -122,7 +122,7 @@ class MijnBibliotheek:
             AuthenticationError
             IncompatibleSourceError
         """
-        _log.info(f"Retrieving accounts")
+        _log.info("Retrieving accounts")
         if not self._logged_in:
             self.login()
 
@@ -151,7 +151,7 @@ class MijnBibliotheek:
             IncompatibleSourceError
             ItemAccessError: something went wrong fetching loans or reservations
         """
-        _log.info(f"Retrieving all information")
+        _log.info("Retrieving all information")
         info = {}
         accounts = self.get_accounts()
         for a in accounts:
