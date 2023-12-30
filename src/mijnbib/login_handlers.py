@@ -188,17 +188,6 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (4) cookies           : {response.cookies}")
         # _log.debug(f"login (4) text              : {response.text}")
 
-        # NOTE: Old code from https://github.com/myTselection/bibliotheek_be, to check/clean-up
-        # assert response.status_code == 302
-        # if response.status_code == 302:
-        #     # request access code, https://mijn.bibliotheek.be/openbibid-api.html#_authenticatie
-        #     data = {"hint": hint, "token": oauth_token, "callback":"https://bibliotheek.be/my-library/login/callback", "email": username, "password": password}
-        #     response = self.s.post('https://mijn.bibliotheek.be/openbibid/rest/accessToken',headers=header,data=data,timeout=_TIMEOUT,allow_redirects=False)
-        #     _LOGGER.debug(f"bibliotheek.be login get result status code: {response.status_code}")
-        # else:
-        #     #login session was already available
-        #     login_callback_location = "https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen"
-
         # (5) Open a useful page to confirm we're properly logged in.
         # The Location header (from above) refers to "mijn-bibliotheek/overzicht", but this page is slow to open.
         # So don't go there. Go to lidmaatschappen instead.
