@@ -32,16 +32,16 @@ class LoginByForm(LoginHandler):
         self._br = br
 
     def login(self) -> mechanize.Browser:
-        response = self._log_in(self._url)  # TODO: remove parameter
+        response = self._log_in()
         html = response.read().decode("utf-8") if response is not None else ""
         self._validate_logged_in(html)  # raises AuthenticationError if not ok
         return self._br
 
-    def _log_in(self, url):
+    def _log_in(self):
         html_string_start_page = "not yet set"  # placeholder for troubleshooting
         try:
             _log.debug("Opening login page ... ")
-            response = self._br.open(url)  # pylint: disable=assignment-from-none
+            response = self._br.open(self._url)  # pylint: disable=assignment-from-none
             html_string_start_page = response.read().decode("utf-8")  # type:ignore
             self._br.select_form(nr=0)
             self._br["email"] = self._username
@@ -55,7 +55,7 @@ class LoginByForm(LoginHandler):
             # We specifically catch this because site periodically (maintenance?)
             # throws a 500, 502 or 504
             raise CanNotConnectError(
-                f"Error while trying to log in at: {url}  ({str(e)})", url
+                f"Error while trying to log in at: {self._url}  ({str(e)})", self._url
             ) from e
         return response
 
