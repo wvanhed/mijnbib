@@ -20,5 +20,6 @@ def test_mijnbib_available_imports():
             "mijnbibliotheek",
             "parsers",
             "models",
+            "login_handlers",
         ]
     )
