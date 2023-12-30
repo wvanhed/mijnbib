@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import re
 import urllib.parse
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import datetime
 
 from bs4 import BeautifulSoup
@@ -25,9 +25,9 @@ DATE_FORMAT = "%d/%m/%Y"
 #               complicated, see also https://stackoverflow.com/a/25328374/50899
 
 
-class Parser:
+class Parser(ABC):
     @abstractmethod
-    def parse():
+    def parse(self):
         pass
 
 
