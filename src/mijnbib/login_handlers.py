@@ -74,9 +74,7 @@ class LoginByForm(LoginHandler):
         _log.debug("Login was successful")
 
 
-# TODO clean up assert statements
-# TODO: check invalid credentials case
-# TODO: check already logged in behaviour
+# TODO: clean up assert statements
 class LoginByOAuth(LoginHandler):
     def __init__(self, username, password, url: str, br: mechanize.Browser):
         self._username = username
@@ -90,13 +88,17 @@ class LoginByOAuth(LoginHandler):
         self._base_url = f"{url_splitter.scheme}://{url_splitter.netloc}"
 
         self._s = requests.Session()
+        # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
         # Set some general request parameters, see https://stackoverflow.com/a/59317604/50899
         self._s.request = functools.partial(self._s.request, timeout=30)  # type: ignore
         self._s.headers["User-Agent"] = "Mijnbib"
         self._s.headers["Content-Type"] = "application/json"
 
     def login(self) -> mechanize.Browser:
-        response = self._log_in()
+        self._log_in()
+
+        url = self._base_url + "/mijn-bibliotheek/lidmaatschappen"
+        response = self._s.get(f"{url}", allow_redirects=False)
         html = response.text if response is not None else ""
         self._validate_logged_in(html)
 
@@ -128,9 +130,10 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (1) oauth_callback_url: {oauth_callback_url}")
         _log.debug(f"login (1) oauth_token       : {oauth_token}")
         _log.debug(f"login (1) hint              : {hint}")
-        if response.status_code != 302:
-            # Return if already authenticated
-            return True  # TODO: fix
+        assert response.status_code == 302
+        if "/mijn-bibliotheek/overzicht" in oauth_location_url:
+            _log.info("Already authenticated. No need to log in again.")
+            return
 
         # (2) Authorize based on Location url (get session id)
         response = self._s.get(oauth_location_url, allow_redirects=False)
@@ -153,7 +156,6 @@ class LoginByOAuth(LoginHandler):
         response = self._s.post(url, data=data, allow_redirects=False)
         _log.debug(f"login (3) status code       : {response.status_code}")
         _log.debug(f"login (3) headers           : {response.headers}")
-        _log.debug(f"login (3) cookies           : {response.cookies}")  # no cookies
         login_location_url = response.headers.get("location", "")
         login_locationurl_parsed = urlsplit(login_location_url)
         login_query_params = parse_qs(login_locationurl_parsed.query)
@@ -164,6 +166,8 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (3) oauth_verifier    : {oauth_verifier}")
         _log.debug(f"login (3) oauth_token       : {oauth_token}")
         _log.debug(f"login (3) hint              : {hint}")
+        if response.status_code == 200:
+            raise AuthenticationError("Login not accepted. Correct credentials?")
         assert response.status_code == 303
 
         # (4) Call login callback based on Location url
@@ -186,11 +190,8 @@ class LoginByOAuth(LoginHandler):
 
         # (5) Open a useful page to confirm we're properly logged in.
         # The Location header (from above) refers to "mijn-bibliotheek/overzicht", but this page is slow to open.
-        # So don't go there, but go to lidmaatschappen instead.
-        url = self._base_url + "/mijn-bibliotheek/lidmaatschappen"
-        response = self._s.get(f"{url}", allow_redirects=False)
-        assert response.status_code == 200
-        return response
+        # So don't go there. Go to lidmaatschappen instead.
+        # (moved to next step)
 
     def _validate_logged_in(self, html: str):
         _log.debug("Checking if login is successful ...")
