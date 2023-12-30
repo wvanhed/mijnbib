@@ -74,7 +74,6 @@ class LoginByForm(LoginHandler):
         _log.debug("Login was successful")
 
 
-# TODO: clean up assert statements
 class LoginByOAuth(LoginHandler):
     def __init__(self, username, password, url: str, br: mechanize.Browser):
         self._username = username
@@ -130,7 +129,11 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (1) oauth_callback_url: {oauth_callback_url}")
         _log.debug(f"login (1) oauth_token       : {oauth_token}")
         _log.debug(f"login (1) hint              : {hint}")
-        assert response.status_code == 302
+        if response.status_code != 302:
+            raise IncompatibleSourceError(
+                f"Expected status code 302 during log in. Got '{response.status_code}'",
+                response.text,
+            )
         if "/mijn-bibliotheek/overzicht" in oauth_location_url:
             _log.info("Already authenticated. No need to log in again.")
             return
@@ -140,7 +143,11 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (2) status code       : {response.status_code}")
         _log.debug(f"login (2) headers           : {response.headers}")
         _log.debug(f"login (2) cookies           : {response.cookies}")
-        assert response.status_code == 200
+        if response.status_code != 200:
+            raise IncompatibleSourceError(
+                f"Expected status code 200 during log in. Got '{response.status_code}'",
+                response.text,
+            )
 
         # (3) Login with username, password & token
         # example response:
@@ -168,7 +175,11 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (3) hint              : {hint}")
         if response.status_code == 200:
             raise AuthenticationError("Login not accepted. Correct credentials?")
-        assert response.status_code == 303
+        if response.status_code != 303:
+            raise IncompatibleSourceError(
+                f"Expected status code 303 during log in. Got '{response.status_code}'",
+                response.text,
+            )
 
         # (4) Call login callback based on Location url
         response = self._s.get(login_location_url, allow_redirects=False)
