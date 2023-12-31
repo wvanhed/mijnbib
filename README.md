@@ -58,13 +58,35 @@ Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
 
 ## Opmerkingen
 
-Deze Python API haalt zijn gegevens via webscraping van de bibliotheek.be website.
-Daardoor is ze afhankelijk van de structuur van de website. Bij een wijziging aan
-de structuur van de website is het dus heel waarschijnlijk dat alle of bepaalde
-functionaliteit plots niet meer werkt.
+- **Authenticatie**. Inloggen bij de bibliotheek.be website gebeurt standaard
+  via een webformulier. Het is ook mogelijk om de snellere `oauth` manier te
+  gebruiken; dit is nog experimenteel.
 
-In dat geval is het wachten tot deze Python library geupdate is om met de nieuwe
-structuur om te gaan.
+        mb = MijnBibliotheek(username, password, city, login_by="oauth")
+        accounts = mb.get_accounts()
+
+- **Foutafhandeling**. Afhankelijk van de toepassing, kan het aangeraden zijn om
+  foutafhandeling te voorzien. Het bestand `errors.py` bevat de lijst van
+  Mijnbib-specifieke exceptions. De docstrings van de publieke methods bevatten
+  de errors die kunnen optreden. Bijvoorbeeld:
+
+        mb = MijnBibliotheek(username, password, city)
+        try:
+            accounts = mb.get_accounts()
+        except AuthenticationError as e:
+            print(e)  # wrong credentials
+        except MijnbibError as e:
+            print(e) # any other custom mijnbib error
+
+- **Compatibiliteit met bibliotheek.be** - Deze Python API haalt zijn gegevens
+  via webscraping van de bibliotheek.be website.
+  Daardoor is ze afhankelijk van de structuur van de website. Bij een wijziging aan
+  de structuur van de website is het dus heel waarschijnlijk dat alle of bepaalde
+  functionaliteit plots niet meer werkt.  
+  In dat geval is het wachten tot deze Python library geupdate is om met de nieuwe
+  structuur om te gaan.  
+  Voorzie een try/except wrapper, waarbij je ofwel `MijnbibError` opvangt, of de
+  meer specifieke `IncompatibleSourceError`.
 
 ## Alternatieven
 
@@ -95,8 +117,8 @@ testing* approach can be used to get some confidence when applying refactoring:
    `password` and `account_id`
 2. Run `python tests/save_testref.py` to capture and store the current output
    (a couple of files will be created)
-4. Perform refactoring as needed
-5. Run `pytest tests/tst_mijnbibliotheek.py` (note: it's `pytest` here!) to check
+3. Perform refactoring as needed
+4. Run `pytest tests/tst_mijnbibliotheek.py` (note: it's `pytest` here!) to check
    if the output still matches the earlier captured output
 
 Creating a distribution archive:
