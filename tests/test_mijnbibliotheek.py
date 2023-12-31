@@ -1,10 +1,22 @@
+import configparser
 import io
+from pathlib import Path
 from typing import BinaryIO
 
 import pytest
 
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError
+from mijnbib.login_handlers import LoginByForm
+
+CONFIG_FILE = "mijnbib.ini"
+
+
+@pytest.fixture()
+def creds_config(scope="module"):
+    config = configparser.ConfigParser()
+    config.read(CONFIG_FILE)
+    yield dict(**config.defaults())
 
 
 class FakeMechanizeBrowser:
@@ -24,30 +36,67 @@ class FakeMechanizeBrowser:
         return io.BytesIO(self._form_response)
 
 
-def test_login_ok():
-    mb = MijnBibliotheek("user", "pwd", "city")
-    mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
-    mb.login()
+class TestFakedLogins:
+    def test_default_login_is_by_form(self):
+        mb = MijnBibliotheek("user", "pwd", "city")
+        assert mb._login_handler_class == LoginByForm
 
-    assert mb._logged_in
-
-
-def test_login_fails():
-    mb = MijnBibliotheek("user", "pwd", "city")
-    mb._br = FakeMechanizeBrowser(form_response="whatever")  # type: ignore
-
-    with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
+    def test_login_ok(self):
+        mb = MijnBibliotheek("user", "pwd", "city")
+        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
         mb.login()
-    assert mb._logged_in is False
+
+        assert mb._logged_in
+
+    def test_login_fails(self):
+        mb = MijnBibliotheek("user", "pwd", "city")
+        mb._br = FakeMechanizeBrowser(form_response="whatever")  # type: ignore
+
+        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
+            mb.login()
+        assert mb._logged_in is False
+
+    def test_login_fails_because_of_privacy(self):
+        mb = MijnBibliotheek("user", "pwd", "city")
+        mb._br = FakeMechanizeBrowser(form_response="privacyverklaring is gewijzigd")  # type: ignore
+
+        with pytest.raises(
+            AuthenticationError,
+            match=r".*Login not accepted \(likely need to accept privacy statement again\).*",
+        ):
+            mb.login()
+        assert mb._logged_in is False
 
 
-def test_login_fails_because_of_privacy():
-    mb = MijnBibliotheek("user", "pwd", "city")
-    mb._br = FakeMechanizeBrowser(form_response="privacyverklaring is gewijzigd")  # type: ignore
-
-    with pytest.raises(
-        AuthenticationError,
-        match=r".*Login not accepted \(likely need to accept privacy statement again\).*",
-    ):
+@pytest.mark.skipif(
+    not Path(CONFIG_FILE).exists(),
+    reason=f"Credentials config file not found: '{CONFIG_FILE}'",
+)
+class TestRealLogins:
+    def test_login_by_form_ok(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"], d["city"], login_by="form")
         mb.login()
-    assert mb._logged_in is False
+
+        assert mb._logged_in
+
+    def test_login_by_form_wrong_creds(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], "wrongpassword", d["city"], login_by="form")
+        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
+            mb.login()
+        assert mb._logged_in is False
+
+    def test_login_by_oauth_ok(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"], d["city"], login_by="oauth")
+        mb.login()
+
+        assert mb._logged_in
+
+    def test_login_by_oauth_wrong_creds(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], "wrongpassword", d["city"], login_by="oauth")
+        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
+            mb.login()
+        assert mb._logged_in is False

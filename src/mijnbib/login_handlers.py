@@ -32,6 +32,7 @@ class LoginByForm(LoginHandler):
         self._br = br
 
     def login(self) -> mechanize.Browser:
+        # TODO: check if can be sped up by starting from lidmaatschappen page (and not overview)
         response = self._log_in()
         html = response.read().decode("utf-8") if response is not None else ""
         self._validate_logged_in(html)  # raises AuthenticationError if not ok

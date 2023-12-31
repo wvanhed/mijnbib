@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## WIP
+
+- new: experimental login via OAuth (optional)
+- impr: set some log messages at INFO level
+
 ## v0.3.0 - 2023-12-27
 
 - new: rename base exception to MijnbibError

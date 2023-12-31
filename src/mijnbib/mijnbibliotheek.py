@@ -20,7 +20,7 @@ from mijnbib.errors import (
     ItemAccessError,
     TemporarySiteError,
 )
-from mijnbib.login_handlers import LoginByForm
+from mijnbib.login_handlers import LoginByForm, LoginByOAuth
 from mijnbib.models import Account, Loan, Reservation
 from mijnbib.parsers import (
     AccountsListPageParser,
@@ -33,15 +33,30 @@ _log = logging.getLogger(__name__)
 
 
 class MijnBibliotheek:
-    """API for interacting with the mijn.bibliotheek.be website."""
-
     BASE_DOMAIN = "bibliotheek.be"
 
-    def __init__(self, username: str, password: str, city: str) -> None:
+    def __init__(self, username: str, password: str, city: str, login_by="form"):
+        """API for interacting with the mijn.bibliotheek.be website.
+
+        Args:
+            username:   username or email address
+            password:   password
+            city    :   subdomain for the bibliotheek.be website, typically your city
+            login_by:   Optional. Either `form` (default) or `oauth`. Specfies
+                        whether authentication happens via a web-based login
+                        form (slow), or via OAauth (2x faster, but more complex flow)
+        """
         self._username = username
         self._pwd = password
 
         self.BASE_URL = f"https://{city.lower().strip()}.{self.BASE_DOMAIN}"
+        if login_by == "oauth":
+            self._login_handler_class = LoginByOAuth
+        elif login_by == "form":
+            self._login_handler_class = LoginByForm
+        else:
+            raise ValueError("login_by needs to be either 'oauth' or 'form'")
+
         self._logged_in = False
 
         self._br = mechanize.Browser()
@@ -61,7 +76,7 @@ class MijnBibliotheek:
         _log.info(f"Will log in at url : {url}")
         _log.info(f"           with id : {self._username}")
 
-        login_handler = LoginByForm(self._username, self._pwd, url, self._br)
+        login_handler = self._login_handler_class(self._username, self._pwd, url, self._br)
         self._br = login_handler.login()  # May raise AuthenticationError
 
         self._logged_in = True
