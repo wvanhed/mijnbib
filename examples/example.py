@@ -8,29 +8,29 @@ logging.basicConfig(format="%(levelname)s %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
 pp = pprint.PrettyPrinter()
 
-# Change these values !!!
-city = "gent"
+# Change the following values to match your situation
+# city = "gent" # this used to be required, but is optional since January 2024
 username = "johndoe"
 password = "password"
 account_id = "123456"
 
 print("\nFetching accounts...")
-mb = MijnBibliotheek(username, password, city)
+mb = MijnBibliotheek(username, password)
 accounts = mb.get_accounts()
 pp.pprint([asdict(acc) for acc in accounts])
 
 print("\nFetching loans...")
-mb = MijnBibliotheek(username, password, city)
+mb = MijnBibliotheek(username, password)
 loans = mb.get_loans(account_id)
 pp.pprint([asdict(loan) for loan in loans])
 
 print("\nFetching reservations...")
-mb = MijnBibliotheek(username, password, city)
+mb = MijnBibliotheek(username, password)
 reservations = mb.get_reservations(account_id)
 pp.pprint([asdict(res) for res in reservations])
 
 print("\nFetching all info...")
-mb = MijnBibliotheek(username, password, city)
+mb = MijnBibliotheek(username, password)
 info = mb.get_all_info(all_as_dicts=True)
 pp.pprint(info)
 
@@ -41,7 +41,7 @@ for _key, acc in info.items():
 pp.pprint(extendable_loans)
 
 # print("Extending loan...")
-# mb = MijnBibliotheek(username, password, city)
+# mb = MijnBibliotheek(username, password)
 # success, details = mb.extend_loans(
 #     "<paste extend_url here>", # adapt this
 #     False,  # set tot True, to actually extend a loan

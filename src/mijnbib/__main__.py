@@ -11,7 +11,6 @@ CONFIG_FILE = "mijnbib.ini"
 
 def _do_login(args: argparse.Namespace):
     print("Trying to log in ...")
-
     print(f"City:    : {args.city}")
     print(f"Username : {args.username}")
 
@@ -25,8 +24,6 @@ def _do_login(args: argparse.Namespace):
 
 def _do_all(args: argparse.Namespace):
     print("Retrieving all information ...")
-
-    print(f"City:    : {args.city}")
     print(f"Username : {args.username}")
 
     mb = MijnBibliotheek(args.username, args.password, args.city)
@@ -36,8 +33,6 @@ def _do_all(args: argparse.Namespace):
 
 def _do_accounts(args: argparse.Namespace):
     print("Retrieving accounts ...")
-
-    print(f"City:    : {args.city}")
     print(f"Username : {args.username}")
 
     mb = MijnBibliotheek(args.username, args.password, args.city)
@@ -47,8 +42,6 @@ def _do_accounts(args: argparse.Namespace):
 
 def _do_loans(args: argparse.Namespace):
     print("Retrieving loans ...")
-
-    print(f"City:    : {args.city}")
     print(f"Username : {args.username}")
     print(f"Account  : {args.accountid}")
 
@@ -59,8 +52,6 @@ def _do_loans(args: argparse.Namespace):
 
 def _do_reservations(args: argparse.Namespace):
     print("Retrieving reservations ...")
-
-    print(f"City:    : {args.city}")
     print(f"Username : {args.username}")
     print(f"Account  : {args.accountid}")
 
@@ -90,7 +81,7 @@ def main():
             "   [DEFAULT]\n"
             "   username = john\n"
             "   password = 123456\n"
-            "   city = gent\n"
+            "   city = gent    (can be blank)\n"
             "   accountid = 456"
         ),
     )
@@ -128,7 +119,7 @@ def main():
         logging.basicConfig(format="%(levelname)s %(message)s")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    required = ["username", "password", "city"]
+    required = ["username", "password"]
     for r in required:
         if getattr(args, r) is None:
             print(

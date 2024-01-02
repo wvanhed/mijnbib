@@ -21,12 +21,11 @@ Bijvoorbeeld, het opvragen van je ontleende items kan als volgt (na installatie)
 
     from mijnbib import MijnBibliotheek
 
-    city = "gent"           # jouw gemeente of stad
     username = "johndoe"
     password = "12345678"
     account_id = "12345"    # zie het getal in de URL, of via mb.get_accounts()
 
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     loans = mb.get_loans(account_id)
     print(loans)
 
@@ -62,7 +61,7 @@ Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
   via een webformulier. Het is ook mogelijk om de snellere `oauth` manier te
   gebruiken; dit is nog experimenteel.
 
-        mb = MijnBibliotheek(username, password, city, login_by="oauth")
+        mb = MijnBibliotheek(username, password, login_by="oauth")
         accounts = mb.get_accounts()
 
 - **Foutafhandeling**. Afhankelijk van de toepassing, kan het aangeraden zijn om
@@ -70,7 +69,7 @@ Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
   Mijnbib-specifieke exceptions. De docstrings van de publieke methods bevatten
   de errors die kunnen optreden. Bijvoorbeeld:
 
-        mb = MijnBibliotheek(username, password, city)
+        mb = MijnBibliotheek(username, password)
         try:
             accounts = mb.get_accounts()
         except AuthenticationError as e:
@@ -113,8 +112,8 @@ To work around the challenge of testing a web scraper, the following *snapshot
 testing* approach can be used to get some confidence when applying refactoring:
 
 1. Create a file `mijnbib.ini` in the project root folder, and make it contain
-   a section `[DEFAULT]` holding the following parameters: `city`, `username`,
-   `password` and `account_id`
+   a section `[DEFAULT]` holding the following parameters: `username`,
+   `password`, `city` and `account_id`
 2. Run `python tests/save_testref.py` to capture and store the current output
    (a couple of files will be created)
 3. Perform refactoring as needed
