@@ -116,7 +116,7 @@ def main():
     args = parser.parse_args()
 
     if args.verbose:
-        logging.basicConfig(format="%(levelname)s %(message)s")
+        logging.basicConfig(format="%(levelname)-7s %(message)s")
         logging.getLogger().setLevel(logging.DEBUG)
 
     required = ["username", "password"]

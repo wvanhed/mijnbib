@@ -4,7 +4,7 @@ from dataclasses import asdict
 
 from mijnbib import MijnBibliotheek
 
-logging.basicConfig(format="%(levelname)s %(message)s")
+logging.basicConfig(format="%(levelname)-7s %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
 pp = pprint.PrettyPrinter()
 
