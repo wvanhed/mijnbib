@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## WIP
+## v0.4.0 - 2024-01-02
 
 - new: experimental login via OAuth (optional)
 - new: city parameter to create MijnBibliotheek object is now optional
