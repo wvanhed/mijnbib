@@ -7,7 +7,7 @@ import pytest
 
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError
-from mijnbib.login_handlers import LoginByForm
+from mijnbib.login_handlers import LoginByForm, LoginByOAuth
 
 CONFIG_FILE = "mijnbib.ini"
 
@@ -36,11 +36,25 @@ class FakeMechanizeBrowser:
         return io.BytesIO(self._form_response)
 
 
-class TestFakedLogins:
-    def test_default_login_is_by_form(self):
+class TestLoginByOption:
+    def test_login_by_options_default_is_by_form(self):
         mb = MijnBibliotheek("user", "pwd", "city")
         assert mb._login_handler_class == LoginByForm
 
+    def test_login_by_options_by_form(self):
+        mb = MijnBibliotheek("user", "pwd", "city", "form")
+        assert mb._login_handler_class == LoginByForm
+
+    def test_login_by_options_by_oauth(self):
+        mb = MijnBibliotheek("user", "pwd", "city", "oauth")
+        assert mb._login_handler_class == LoginByOAuth
+
+    def test_login_by_options_invalid_option_raises_error(self):
+        with pytest.raises(ValueError):
+            MijnBibliotheek("user", "pwd", "city", login_by="foo")
+
+
+class TestFakedLogins:
     def test_login_ok(self):
         mb = MijnBibliotheek("user", "pwd", "city")
         mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
