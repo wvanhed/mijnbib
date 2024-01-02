@@ -35,13 +35,15 @@ _log = logging.getLogger(__name__)
 class MijnBibliotheek:
     BASE_DOMAIN = "bibliotheek.be"
 
-    def __init__(self, username: str, password: str, city: str, login_by="form"):
+    def __init__(self, username: str, password: str, city: str | None = None, login_by="form"):
         """API for interacting with the mijn.bibliotheek.be website.
 
         Args:
             username:   username or email address
             password:   password
-            city    :   subdomain for the bibliotheek.be website, typically your city
+            city    :   Optional. Subdomain for the bibliotheek.be website,
+                        typically your city. Used to be required, but can be
+                        blank, since January 2024.
             login_by:   Optional. Either `form` (default) or `oauth`. Specfies
                         whether authentication happens via a web-based login
                         form (slow), or via OAauth (2x faster, but more complex flow)
@@ -49,7 +51,12 @@ class MijnBibliotheek:
         self._username = username
         self._pwd = password
 
-        self.BASE_URL = f"https://{city.lower().strip()}.{self.BASE_DOMAIN}"
+        subdomain = ""
+        if city is not None and city != "":
+            subdomain = city.lower().strip() + "."
+            _log.warning("The 'city' parameter is no longer required. You can leave it blank.")
+        self.BASE_URL = f"https://{subdomain}{self.BASE_DOMAIN}"
+
         if login_by == "oauth":
             self._login_handler_class = LoginByOAuth
         elif login_by == "form":

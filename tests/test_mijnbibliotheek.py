@@ -94,6 +94,13 @@ class TestRealLogins:
 
         assert mb._logged_in
 
+    def test_login_by_form_ok_no_city(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"], login_by="form")
+        mb.login()
+
+        assert mb._logged_in
+
     def test_login_by_form_wrong_creds(self, creds_config):
         d = creds_config
         mb = MijnBibliotheek(d["username"], "wrongpassword", d["city"], login_by="form")
@@ -104,6 +111,13 @@ class TestRealLogins:
     def test_login_by_oauth_ok(self, creds_config):
         d = creds_config
         mb = MijnBibliotheek(d["username"], d["password"], d["city"], login_by="oauth")
+        mb.login()
+
+        assert mb._logged_in
+
+    def test_login_by_oauth_ok_no_city(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
         mb.login()
 
         assert mb._logged_in
