@@ -13,6 +13,7 @@ from dataclasses import asdict
 
 import mechanize
 
+from mijnbib import __version__
 from mijnbib.errors import (
     ExtendLoanError,
     IncompatibleSourceError,
@@ -48,6 +49,7 @@ class MijnBibliotheek:
                         whether authentication happens via a web-based login
                         form (slow), or via OAauth (2x faster, but more complex flow)
         """
+        _log.debug(f"Initializing {__package__} v{__version__}. (login_by: '{login_by}')")
         self._username = username
         self._pwd = password
 

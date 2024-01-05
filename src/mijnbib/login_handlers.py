@@ -9,6 +9,7 @@ from urllib.parse import parse_qs, urlsplit
 import mechanize
 import requests
 
+from mijnbib import __version__
 from mijnbib.errors import (
     AuthenticationError,
     CanNotConnectError,
@@ -83,7 +84,7 @@ class LoginByOAuth(LoginHandler):
         # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
         # Set some general request parameters, see https://stackoverflow.com/a/59317604/50899
         self._s.request = functools.partial(self._s.request, timeout=30)  # type: ignore
-        self._s.headers["User-Agent"] = "Mijnbib"
+        self._s.headers["User-Agent"] = f"{__package__} v{__version__}"
         self._s.headers["Content-Type"] = "application/json"
 
     def login(self) -> mechanize.Browser:
