@@ -16,10 +16,12 @@ def test_mijnbib_available_imports():
             "IncompatibleSourceError",
             "MijnbibError",
             "TemporarySiteError",
+            # things we actually don't want to have exported
             "errors",
             "mijnbibliotheek",
             "parsers",
             "models",
             "login_handlers",
+            "importlib",
         ]
     )
