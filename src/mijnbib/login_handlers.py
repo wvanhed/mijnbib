@@ -79,12 +79,7 @@ class LoginByOAuth(LoginHandler):
         self._username = username
         self._pwd = password
         self._br = br
-
-        # e.g. "https://gent.bibliotheek.be/mijn-bibliotheek/aanmelden"
-        self._url = url
-        url_splitter = urlsplit(url)
-        # e.g. "https://gent.bibliotheek.be"
-        self._base_url = f"{url_splitter.scheme}://{url_splitter.netloc}"
+        self._url = url  # e.g. "https://gent.bibliotheek.be/mijn-bibliotheek/aanmelden"
 
         self._s = requests.Session()
         # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
@@ -94,14 +89,7 @@ class LoginByOAuth(LoginHandler):
         self._s.headers["Content-Type"] = "application/json"
 
     def login(self) -> mechanize.Browser:
-        # TODO: check against documentation at https://mijn.bibliotheek.be/api-docs/openbibid-api.html
         self._log_in()
-
-        # url = self._base_url + "/mijn-bibliotheek/lidmaatschappen"
-        # response = self._s.get(f"{url}", allow_redirects=False)
-        # html = response.text if response is not None else ""
-        # self._validate_logged_in(html)
-
         self._br.set_cookiejar(self._s.cookies)  # Transfer from requests to mechanize session
         return self._br
 
@@ -185,6 +173,7 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (4) cookies           : {response.cookies}")
         # _log.debug(f"login (4) text              : {response.text}")
 
+        # Soft verification if we are logged in
         if ("mijn-bibliotheek/overzicht" not in response.headers.get("location", "")) and (
             "mijn-bibliotheek/lidmaatschappen" not in response.headers.get("location", "")
         ):
@@ -193,22 +182,3 @@ class LoginByOAuth(LoginHandler):
                 "'mijn-bibliotheek/overzicht' or 'mijn-bibliotheek/lidmaatschappen' "
                 "in location header, but couldn't find it"
             )
-
-        # We now consider us logged in
-
-    def _validate_logged_in(self, html: str):
-        _log.debug("Checking if login is successful ...")
-
-        if "Profiel" not in html:
-            if (
-                "privacyverklaring is gewijzigd" in html
-                or "akkoord met de privacyverklaring" in html
-            ):
-                raise AuthenticationError(
-                    "Login not accepted (likely need to accept privacy statement again)"
-                )
-            else:
-                raise AuthenticationError("Login not accepted")
-        if "Aangemeld als" not in html:
-            raise AuthenticationError("Login not accepted (2)")
-        _log.debug("Login was successful")
