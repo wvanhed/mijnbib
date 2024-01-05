@@ -79,7 +79,12 @@ class MijnBibliotheek:
             CanNotConnectError
             IncompatibleSourceError
         """
-        url = self.BASE_URL + "/mijn-bibliotheek/aanmelden"
+        url = (
+            self.BASE_URL
+            + "/mijn-bibliotheek/aanmelden"
+            # loads considerably faster than default "/overzicht" page, especially for cold cache
+            + "?destination=/mijn-bibliotheek/lidmaatschappen"
+        )
         _log.info(f"Will log in at url : {url}")
         _log.info(f"           with id : {self._username}")
 
