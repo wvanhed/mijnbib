@@ -96,10 +96,10 @@ class LoginByOAuth(LoginHandler):
     def login(self) -> mechanize.Browser:
         self._log_in()
 
-        url = self._base_url + "/mijn-bibliotheek/lidmaatschappen"
-        response = self._s.get(f"{url}", allow_redirects=False)
-        html = response.text if response is not None else ""
-        self._validate_logged_in(html)
+        # url = self._base_url + "/mijn-bibliotheek/lidmaatschappen"
+        # response = self._s.get(f"{url}", allow_redirects=False)
+        # html = response.text if response is not None else ""
+        # self._validate_logged_in(html)
 
         # Transfer cookies from requests session to mechanize browser
         self._br.set_cookiejar(self._s.cookies)
@@ -188,10 +188,16 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (4) cookies           : {response.cookies}")
         # _log.debug(f"login (4) text              : {response.text}")
 
-        # (5) Open a useful page to confirm we're properly logged in.
-        # The Location header (from above) refers to "mijn-bibliotheek/overzicht", but this page is slow to open.
-        # So don't go there. Go to lidmaatschappen instead.
-        # (moved to next step)
+        if ("mijn-bibliotheek/overzicht" not in response.headers.get("location", "")) and (
+            "mijn-bibliotheek/lidmaatschappen" not in response.headers.get("location", "")
+        ):
+            _log.warning(
+                "Not clear if properly logged in. Was expecting "
+                "'mijn-bibliotheek/overzicht' or 'mijn-bibliotheek/lidmaatschappen' "
+                "in location header, but couldn't find it"
+            )
+
+        # We now consider us logged in
 
     def _validate_logged_in(self, html: str):
         _log.debug("Checking if login is successful ...")
