@@ -19,18 +19,18 @@ _log = logging.getLogger(__name__)
 
 
 class LoginHandler(ABC):
-    @abstractmethod
-    def login(self) -> mechanize.Browser:
-        pass
-
-
-class LoginByForm(LoginHandler):
     def __init__(self, username, password, url: str, br: mechanize.Browser):
         self._username = username
         self._pwd = password
         self._url = url
         self._br = br
 
+    @abstractmethod
+    def login(self) -> mechanize.Browser:
+        pass
+
+
+class LoginByForm(LoginHandler):
     def login(self) -> mechanize.Browser:
         response = self._log_in()
         html = response.read().decode("utf-8") if response is not None else ""
@@ -59,7 +59,8 @@ class LoginByForm(LoginHandler):
             ) from e
         return response
 
-    def _validate_logged_in(self, html: str):
+    @staticmethod
+    def _validate_logged_in(html: str):
         _log.debug("Checking if login is successful ...")
         if "Profiel" not in html:
             if (
@@ -75,11 +76,8 @@ class LoginByForm(LoginHandler):
 
 
 class LoginByOAuth(LoginHandler):
-    def __init__(self, username, password, url: str, br: mechanize.Browser):
-        self._username = username
-        self._pwd = password
-        self._br = br
-        self._url = url  # e.g. "https://gent.bibliotheek.be/mijn-bibliotheek/aanmelden"
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         self._s = requests.Session()
         # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
