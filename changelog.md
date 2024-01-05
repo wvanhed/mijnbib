@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## WIP
+
+- impr: speed up form and oauth login calls
+- impr: code cleanup & refactoring
+
 ## v0.4.0 - 2024-01-02
 
 - new: experimental login via OAuth (optional)
