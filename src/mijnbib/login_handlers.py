@@ -94,6 +94,7 @@ class LoginByOAuth(LoginHandler):
         self._s.headers["Content-Type"] = "application/json"
 
     def login(self) -> mechanize.Browser:
+        # TODO: check against documentation at https://mijn.bibliotheek.be/api-docs/openbibid-api.html
         self._log_in()
 
         # url = self._base_url + "/mijn-bibliotheek/lidmaatschappen"
@@ -101,11 +102,7 @@ class LoginByOAuth(LoginHandler):
         # html = response.text if response is not None else ""
         # self._validate_logged_in(html)
 
-        # Transfer cookies from requests session to mechanize browser
-        self._br.set_cookiejar(self._s.cookies)
-        # for cookie in self._br._ua_handlers["_cookies"].cookiejar:
-        #     print(cookie)
-
+        self._br.set_cookiejar(self._s.cookies)  # Transfer from requests to mechanize session
         return self._br
 
     def _log_in(self):

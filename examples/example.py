@@ -37,6 +37,8 @@ pp.pprint(info)
 print("\nExtendable loans are:")
 extendable_loans = []
 for _key, acc in info.items():
+    # Note: .extend(...) call below is standard Python functionality for lists
+    # It does NOT extend the loan(s)!
     extendable_loans.extend([loan for loan in acc["loans"] if loan["extendable"]])
 pp.pprint(extendable_loans)
 
