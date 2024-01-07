@@ -71,6 +71,7 @@ class MijnBibliotheek:
 
         self._br = mechanize.Browser()
         self._br.set_handle_robots(False)
+        self._br.set_header("User-Agent", f"{__package__} v{__version__}")
 
     # *** PUBLIC METHODS ***
 
