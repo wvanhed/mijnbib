@@ -15,18 +15,21 @@ class TestAccountsListPageParser:
 
     def test_parse_item_count_from_li(self):
         assert AccountsListPageParser._parse_item_count_from_li("", "") is None
+        assert AccountsListPageParser._parse_item_count_from_li("bogus", "") is None
 
 
 class TestLoansListPageParser:
     def test_parse_account_loans_page(self):
         # Happy flow test --> see doctest
         assert LoansListPageParser("", "", "").parse() == []
+        assert LoansListPageParser("bogus", "", "").parse() == []
 
 
 class TestReservationsPageParser:
     def test_parse_account_reservations_page(self):
         # Happy flow test --> see doctest
         assert ReservationsPageParser("").parse() == []
+        assert ReservationsPageParser("bogus").parse() == []
 
 
 class TestExtendResponsePageParser:
@@ -62,8 +65,11 @@ class TestExtendResponsePageParser:
         assert clean_whitespace(actual_result) == clean_whitespace(expected_result)
 
     def test_parse_extend_response_status_blob__empty_case(self):
-        actual_result = ExtendResponsePageParser._parse_extend_response_status_blob("")
-        assert actual_result == {"likely_success": False, "count": 0, "details": []}
+        assert ExtendResponsePageParser._parse_extend_response_status_blob("") == {
+            "likely_success": False,
+            "count": 0,
+            "details": [],
+        }
 
     def test_parse_extend_response_status_blob__success_case(self):
         html_string = """
