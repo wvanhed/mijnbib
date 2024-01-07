@@ -33,6 +33,7 @@ jobs:
         python -m pip install .[dev] 
     - name: Validate code formatted
       run: |
+        make lint
         make blackcheck
     - name: Run tests
       run: |

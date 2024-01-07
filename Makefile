@@ -1,4 +1,4 @@
-all: clean blackcheck test build
+all: clean lint blackcheck test build
 
 test:
 	pytest -v
@@ -12,7 +12,10 @@ black:
 		  .
 
 	black -l 95 --exclude "venv*" .
-	
+
+lint:
+	ruff check .
+
 # For CI/CD pipeline
 blackcheck:
 	isort --skip-glob="**/venv*" \
