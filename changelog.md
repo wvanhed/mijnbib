@@ -2,9 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## WIP
+## v0.5.0 - 2024-01-07
 
 - impr: speed up form and oauth login calls
+- impr: add timeout for all URL calls
+- impr: set user-agent for all URL calls
 - impr: code cleanup & refactoring
 
 ## v0.4.0 - 2024-01-02
