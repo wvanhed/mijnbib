@@ -23,7 +23,7 @@ Bijvoorbeeld, het opvragen van je ontleende items kan als volgt (na installatie)
 
     username = "johndoe"
     password = "12345678"
-    account_id = "12345"    # zie het getal in de URL, of via mb.get_accounts()
+    account_id = "12345"  # zie het getal in de URL, of via mb.get_accounts()
 
     mb = MijnBibliotheek(username, password)
     loans = mb.get_loans(account_id)
@@ -69,13 +69,15 @@ Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
   Mijnbib-specifieke exceptions. De docstrings van de publieke methods bevatten
   de errors die kunnen optreden. Bijvoorbeeld:
 
+        from mijnbib import AuthenticationError, MijnbibError, MijnBibliotheek
+
         mb = MijnBibliotheek(username, password)
         try:
             accounts = mb.get_accounts()
         except AuthenticationError as e:
             print(e)  # wrong credentials
         except MijnbibError as e:
-            print(e) # any other custom mijnbib error
+            print(e)  # any other custom mijnbib error
 
 - **Compatibiliteit met bibliotheek.be** - Deze Python API haalt zijn gegevens
   via webscraping van de bibliotheek.be website.
