@@ -26,7 +26,7 @@ class FakeMechanizeBrowser:
     def __setitem__(self, key, value):
         pass
 
-    def open(self, url) -> BinaryIO:
+    def open(self, url, timeout=0) -> BinaryIO:
         return io.BytesIO(b"some response html")
 
     def select_form(self, *args, **kwargs):
