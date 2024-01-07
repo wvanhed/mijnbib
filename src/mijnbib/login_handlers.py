@@ -17,6 +17,7 @@ from mijnbib.errors import (
 )
 
 _log = logging.getLogger(__name__)
+_TIMEOUT = 30
 
 
 class LoginHandler(ABC):
@@ -42,7 +43,7 @@ class LoginByForm(LoginHandler):
         html_string_start_page = "not yet set"  # placeholder for troubleshooting
         try:
             _log.debug("Opening login page ... ")
-            response = self._br.open(self._url)  # pylint: disable=assignment-from-none
+            response = self._br.open(self._url, timeout=_TIMEOUT)
             html_string_start_page = response.read().decode("utf-8")  # type:ignore
             self._br.select_form(nr=0)
             self._br["email"] = self._username
@@ -83,7 +84,7 @@ class LoginByOAuth(LoginHandler):
         self._s = requests.Session()
         # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
         # Set some general request parameters, see https://stackoverflow.com/a/59317604/50899
-        self._s.request = functools.partial(self._s.request, timeout=30)  # type: ignore
+        self._s.request = functools.partial(self._s.request, timeout=_TIMEOUT)  # type: ignore
         self._s.headers["User-Agent"] = f"{__package__} v{__version__}"
         self._s.headers["Content-Type"] = "application/json"
 
