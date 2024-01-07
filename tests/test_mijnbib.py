@@ -17,6 +17,7 @@ def test_mijnbib_available_imports():
             "MijnbibError",
             "TemporarySiteError",
             # things we actually don't want to have exported
+            "const",
             "errors",
             "mijnbibliotheek",
             "parsers",

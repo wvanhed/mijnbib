@@ -13,7 +13,7 @@ from dataclasses import asdict
 
 import mechanize
 
-from mijnbib import __version__
+from mijnbib.const import TIMEOUT, USER_AGENT
 from mijnbib.errors import (
     ExtendLoanError,
     IncompatibleSourceError,
@@ -31,7 +31,6 @@ from mijnbib.parsers import (
 )
 
 _log = logging.getLogger(__name__)
-_TIMEOUT = 30  # Note: login timeout(s) set in other module!
 
 
 class MijnBibliotheek:
@@ -50,7 +49,7 @@ class MijnBibliotheek:
                         whether authentication happens via a web-based login
                         form (slow), or via OAauth (2x faster, but more complex flow)
         """
-        _log.debug(f"Initializing {__package__} v{__version__}. (login_by: '{login_by}')")
+        _log.debug(f"Initializing {USER_AGENT}. (login_by: '{login_by}')")
         self._username = username
         self._pwd = password
 
@@ -71,7 +70,7 @@ class MijnBibliotheek:
 
         self._br = mechanize.Browser()
         self._br.set_handle_robots(False)
-        self._br.set_header("User-Agent", f"{__package__} v{__version__}")
+        self._br.set_header("User-Agent", USER_AGENT)
 
     # *** PUBLIC METHODS ***
 
@@ -157,7 +156,7 @@ class MijnBibliotheek:
 
         url = self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen"
         _log.debug(f"Opening page '{url}' ... ")
-        response = self._br.open(url, timeout=_TIMEOUT)  # pylint: disable=assignment-from-none
+        response = self._br.open(url, timeout=TIMEOUT)  # pylint: disable=assignment-from-none
         html_string = response.read().decode("utf-8")  # type:ignore
         try:
             accounts = AccountsListPageParser(html_string, self.BASE_URL).parse()
@@ -231,7 +230,7 @@ class MijnBibliotheek:
 
         _log.info(f"Will extend loan via url: {extend_url}")
         try:
-            response = self._br.open(extend_url, timeout=_TIMEOUT)
+            response = self._br.open(extend_url, timeout=TIMEOUT)
         except mechanize.HTTPError as e:
             if e.code == 500:
                 raise InvalidExtendLoanURL(
@@ -311,7 +310,7 @@ class MijnBibliotheek:
     def _open_account_loans_page(self, acc_url: str) -> str:
         _log.debug(f"Opening page '{acc_url}' ... ")
         try:
-            response = self._br.open(acc_url, timeout=_TIMEOUT)
+            response = self._br.open(acc_url, timeout=TIMEOUT)
         except mechanize.HTTPError as e:
             if e.code == 500:
                 # duh, server crashes on incorrect or nonexisting ID in the link
