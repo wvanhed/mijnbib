@@ -172,12 +172,19 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (4) cookies           : {response.cookies}")
         # _log.debug(f"login (4) text              : {response.text}")
 
+        # Note: the above request gives a 302 redirection, but we don't follow it (too costly)
+
         # Soft verification if we are logged in
         if ("mijn-bibliotheek/overzicht" not in response.headers.get("location", "")) and (
             "mijn-bibliotheek/lidmaatschappen" not in response.headers.get("location", "")
         ):
             _log.warning(
-                "Not clear if properly logged in. Was expecting "
+                f"Not clear if properly logged in (as '{self._username}'). Was expecting "
                 "'mijn-bibliotheek/overzicht' or 'mijn-bibliotheek/lidmaatschappen' "
                 "in location header, but couldn't find it"
+            )
+            _log.warning(
+                "Related troubleshooting info. "
+                f"Status code: '{response.status_code}'. "
+                f"Headers: '{response.headers}'"
             )
