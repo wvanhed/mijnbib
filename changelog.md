@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.5.1 - 2024-01-11
+
+- impr: extra logging info for login validation warning
+
 ## v0.5.0 - 2024-01-07
 
 - impr: speed up form and oauth login calls
