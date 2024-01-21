@@ -211,6 +211,7 @@ class MijnBibliotheek:
         `success==False`, rather then raising an ExtendLoanError)
 
         Args:
+            extend_url: url to use for extending one or multiple loans
             execute: A development flag; set to True actually perform loan extension
         Returns:
             A result tuple (success, details).
@@ -284,12 +285,12 @@ class MijnBibliotheek:
     def extend_loans_by_ids(
         self, acc_extids: list[tuple[str, str]], execute: bool = False
     ) -> tuple[bool, dict]:
-        """Extend loan(s) via list of (account, extend_id) tuples. Will login first if needed.
+        """Extend loan(s) via list of (account_id, extend_id) tuples. Will login first if needed.
 
         For return value, exceptions thrown and more details, see `extend_loans()`
 
         Args:
-            acc_eids: List of (account, extend_id) tuples
+            acc_extids: List of (account_id, extend_id) tuples
             execute:  A development flag; set to True actually perform loan extension
         """
         _log.info(f"Extending loans via ids: '{acc_extids}'")
