@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.6.0 - WIP
+
+- impr: error handling for non-existing account id
+
 ## v0.5.1 - 2024-01-11
 
 - impr: extra logging info for login validation warning

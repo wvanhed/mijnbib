@@ -313,12 +313,14 @@ class MijnBibliotheek:
         try:
             response = self._br.open(acc_url, timeout=TIMEOUT)
         except mechanize.HTTPError as e:
-            if e.code == 500:
-                # duh, server crashes on incorrect or nonexisting ID in the link
-                # TODO: looks like nonexisting id has been changed to 404. Update logic
+            if e.code == 404:
                 raise ItemAccessError(
-                    "Loans url can not be opened. Likely incorrect or "
+                    "Loans url can not be opened (404 reponse). Likely incorrect or "
                     f"nonexisting account ID in the url '{acc_url}'"
+                ) from e
+            if e.code == 500:
+                raise TemporarySiteError(
+                    f"Loans url can not be opened (500 response), url '{acc_url}'"
                 ) from e
             raise ItemAccessError(
                 f"Loans url can not be opened. Reason unknown. Error: {e}"
