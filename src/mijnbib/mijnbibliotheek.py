@@ -315,6 +315,7 @@ class MijnBibliotheek:
         except mechanize.HTTPError as e:
             if e.code == 500:
                 # duh, server crashes on incorrect or nonexisting ID in the link
+                # TODO: looks like nonexisting id has been changed to 404. Update logic
                 raise ItemAccessError(
                     "Loans url can not be opened. Likely incorrect or "
                     f"nonexisting account ID in the url '{acc_url}'"
