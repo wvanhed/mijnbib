@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## v0.6.0 - WIP
+## v0.5.2 - 2024-02-11
 
 - impr: error handling for non-existing account id
 
