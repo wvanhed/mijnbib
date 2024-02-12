@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.5.3 - WIP
+
+- impr: error handling during login now can raise TemporarySiteError
+
 ## v0.5.2 - 2024-02-11
 
 - impr: error handling for non-existing account id

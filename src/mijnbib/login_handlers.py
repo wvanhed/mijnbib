@@ -14,6 +14,7 @@ from mijnbib.errors import (
     AuthenticationError,
     CanNotConnectError,
     IncompatibleSourceError,
+    TemporarySiteError,
 )
 
 _log = logging.getLogger(__name__)
@@ -113,6 +114,10 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (1) oauth_callback_url: {oauth_callback_url}")
         _log.debug(f"login (1) oauth_token       : {oauth_token}")
         _log.debug(f"login (1) hint              : {hint}")
+        if response.status_code >= 500:  # we've observed 500, 502 and 503:
+            raise TemporarySiteError(
+                f"Expected status code 302 during log in. Got '{response.status_code}'"
+            )
         if response.status_code != 302:
             raise IncompatibleSourceError(
                 f"Expected status code 302 during log in. Got '{response.status_code}'",

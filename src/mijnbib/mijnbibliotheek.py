@@ -81,6 +81,7 @@ class MijnBibliotheek:
             AuthenticationError
             CanNotConnectError
             IncompatibleSourceError
+            TemporarySiteError
         """
         url = (
             self.BASE_URL
