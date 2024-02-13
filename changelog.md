@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## v0.5.3 - WIP
+## v0.5.3 - 2024-02-13
 
 - impr: error handling during login now can raise TemporarySiteError
 

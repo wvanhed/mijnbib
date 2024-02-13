@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mijnbib"
-version = "0.5.2"
+version = "0.5.3"
 description = "Python API voor de website mijn.bibliotheek.be"
 readme = "README.md"
 authors = [{ name = "Ward Van Heddeghem", email = "wardvh@fastmail.fm" }]
