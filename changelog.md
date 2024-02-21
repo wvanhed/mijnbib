@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.5.4 - 2024-02-21
+
+- impr: improve extensibility of oauth login handler
+
 ## v0.5.3 - 2024-02-13
 
 - impr: error handling during login now can raise TemporarySiteError
