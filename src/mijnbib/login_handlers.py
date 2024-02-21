@@ -193,3 +193,5 @@ class LoginByOAuth(LoginHandler):
                 f"Status code: '{response.status_code}'. "
                 f"Headers: '{response.headers}'"
             )
+
+        return response  # better for extensibility (i.e. sOlid)
