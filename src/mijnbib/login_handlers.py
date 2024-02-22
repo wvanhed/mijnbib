@@ -125,7 +125,7 @@ class LoginByOAuth(LoginHandler):
             )
         if "/mijn-bibliotheek/overzicht" in oauth_location_url:
             _log.info("Already authenticated. No need to log in again.")
-            return
+            return response  # better for extensibility (i.e. sOlid)
 
         # (2) Authorize based on Location url (get session id)
         response = self._s.get(oauth_location_url, allow_redirects=False)
