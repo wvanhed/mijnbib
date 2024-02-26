@@ -164,6 +164,10 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (3) hint              : {hint}")
         if response.status_code == 200:
             raise AuthenticationError("Login not accepted. Correct credentials?")
+        if response.status_code >= 500:  # we've observed 500
+            raise TemporarySiteError(
+                f"Expected status code 303 during log in. Got '{response.status_code}'"
+            )
         if response.status_code != 303:
             raise IncompatibleSourceError(
                 f"Expected status code 303 during log in. Got '{response.status_code}'",
