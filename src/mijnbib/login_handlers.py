@@ -106,6 +106,7 @@ class LoginByOAuth(LoginHandler):
         # GET https://gent.bibliotheek.be/mijn-bibliotheek/aanmelden
         # example response:
         # header Location: https://mijn.bibliotheek.be/openbibid/rest/auth/authorize?hint=login&oauth_callback=https://gent.bibliotheek.be/my-library/login/callback&oauth_token=5abee3c0f5c04beead64d8e625ead0e7&uilang=nl
+        _log.debug("----")
         response = self._s.get(self._url, allow_redirects=False)
         _log.debug(f"login (1) status code       : {response.status_code}")
         _log.debug(f"login (1) headers           : {response.headers}")
@@ -134,6 +135,7 @@ class LoginByOAuth(LoginHandler):
             return response  # better for extensibility (i.e. sOlid)
 
         # (2) Authorize based on Location url (get session id)
+        _log.debug("----")
         response = self._s.get(oauth_location_url, allow_redirects=False)
         _log.debug(f"login (2) status code       : {response.status_code}")
         _log.debug(f"login (2) headers           : {response.headers}")
@@ -155,6 +157,7 @@ class LoginByOAuth(LoginHandler):
             "email": self._username,
             "password": self._pwd,
         }
+        _log.debug("----")
         response = self._s.post(url, data=data, allow_redirects=False)
         _log.debug(f"login (3) status code       : {response.status_code}")
         _log.debug(f"login (3) headers           : {response.headers}")
@@ -181,6 +184,7 @@ class LoginByOAuth(LoginHandler):
             )
 
         # (4) Call login callback based on Location url
+        _log.debug("----")
         response = self._s.get(login_location_url, allow_redirects=False)
         _log.debug(f"login (4) status code       : {response.status_code}")
         _log.debug(f"login (4) headers           : {response.headers}")
