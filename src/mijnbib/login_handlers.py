@@ -45,6 +45,12 @@ class LoginByForm(LoginHandler):
             _log.debug("Opening login page ... ")
             response = self._br.open(self._url, timeout=TIMEOUT)
             html_string_start_page = response.read().decode("utf-8")  # type:ignore
+            # Workaround for mechanize.BrowserStateError: not viewing HTML
+            # because suddenly (March 2024) Content-Type header is "application/octet-stream;charset=UTF-8"
+            # which is not recognized as html by mechanize
+            # Alternative is to configure the browser instance with
+            #     self._br.set_header("Accept", "text/html")
+            self._br._factory.is_html = True
             self._br.select_form(nr=0)
             self._br["email"] = self._username
             self._br["password"] = self._pwd
@@ -100,6 +106,7 @@ class LoginByOAuth(LoginHandler):
         # GET https://gent.bibliotheek.be/mijn-bibliotheek/aanmelden
         # example response:
         # header Location: https://mijn.bibliotheek.be/openbibid/rest/auth/authorize?hint=login&oauth_callback=https://gent.bibliotheek.be/my-library/login/callback&oauth_token=5abee3c0f5c04beead64d8e625ead0e7&uilang=nl
+        _log.debug("----")
         response = self._s.get(self._url, allow_redirects=False)
         _log.debug(f"login (1) status code       : {response.status_code}")
         _log.debug(f"login (1) headers           : {response.headers}")
@@ -125,9 +132,10 @@ class LoginByOAuth(LoginHandler):
             )
         if "/mijn-bibliotheek/overzicht" in oauth_location_url:
             _log.info("Already authenticated. No need to log in again.")
-            return
+            return response  # better for extensibility (i.e. sOlid)
 
         # (2) Authorize based on Location url (get session id)
+        _log.debug("----")
         response = self._s.get(oauth_location_url, allow_redirects=False)
         _log.debug(f"login (2) status code       : {response.status_code}")
         _log.debug(f"login (2) headers           : {response.headers}")
@@ -149,6 +157,7 @@ class LoginByOAuth(LoginHandler):
             "email": self._username,
             "password": self._pwd,
         }
+        _log.debug("----")
         response = self._s.post(url, data=data, allow_redirects=False)
         _log.debug(f"login (3) status code       : {response.status_code}")
         _log.debug(f"login (3) headers           : {response.headers}")
@@ -164,6 +173,10 @@ class LoginByOAuth(LoginHandler):
         _log.debug(f"login (3) hint              : {hint}")
         if response.status_code == 200:
             raise AuthenticationError("Login not accepted. Correct credentials?")
+        if response.status_code >= 500:  # we've observed 500
+            raise TemporarySiteError(
+                f"Expected status code 303 during log in. Got '{response.status_code}'"
+            )
         if response.status_code != 303:
             raise IncompatibleSourceError(
                 f"Expected status code 303 during log in. Got '{response.status_code}'",
@@ -171,6 +184,7 @@ class LoginByOAuth(LoginHandler):
             )
 
         # (4) Call login callback based on Location url
+        _log.debug("----")
         response = self._s.get(login_location_url, allow_redirects=False)
         _log.debug(f"login (4) status code       : {response.status_code}")
         _log.debug(f"login (4) headers           : {response.headers}")
