@@ -45,7 +45,11 @@ class LoginByForm(LoginHandler):
             _log.debug("Opening login page ... ")
             response = self._br.open(self._url, timeout=TIMEOUT)
             html_string_start_page = response.read().decode("utf-8")  # type:ignore
-            # TODO Workaround for mechanize.BrowserStateError: not viewing HTML
+            # Workaround for mechanize.BrowserStateError: not viewing HTML
+            # because suddenly (March 2024) Content-Type header is "application/octet-stream;charset=UTF-8"
+            # which is not recognized as html by mechanize
+            # Alternative is to configure the browser instance with
+            #     self._br.set_header("Accept", "text/html")
             self._br._factory.is_html = True
             self._br.select_form(nr=0)
             self._br["email"] = self._username
