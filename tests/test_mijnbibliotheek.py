@@ -19,9 +19,16 @@ def creds_config(scope="module"):
     yield dict(**config.defaults())
 
 
+class X(str):
+    pass
+
+
 class FakeMechanizeBrowser:
     def __init__(self, form_response: str) -> None:
         self._form_response = form_response.encode("utf8")
+        # trick for nested prop, from https://stackoverflow.com/a/35190607/50899
+        self._factory = X("_factory")
+        self._factory.is_html = None  # can be whatever
 
     def __setitem__(self, key, value):
         pass

@@ -45,6 +45,8 @@ class LoginByForm(LoginHandler):
             _log.debug("Opening login page ... ")
             response = self._br.open(self._url, timeout=TIMEOUT)
             html_string_start_page = response.read().decode("utf-8")  # type:ignore
+            # TODO Workaround for mechanize.BrowserStateError: not viewing HTML
+            self._br._factory.is_html = True
             self._br.select_form(nr=0)
             self._br["email"] = self._username
             self._br["password"] = self._pwd
