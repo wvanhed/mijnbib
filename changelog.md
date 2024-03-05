@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.5.5 - 2024-03-05
+
+- fix: broken login (form) because of change at site. 
+  Note: alternative oauth login still broken.
+
 ## v0.5.4 - 2024-02-21
 
 - impr: improve extensibility of oauth login handler
