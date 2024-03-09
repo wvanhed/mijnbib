@@ -14,7 +14,6 @@ from mijnbib.errors import (
     AuthenticationError,
     CanNotConnectError,
     IncompatibleSourceError,
-    TemporarySiteError,
 )
 
 _log = logging.getLogger(__name__)
@@ -33,10 +32,12 @@ class LoginHandler(ABC):
 
 
 class LoginByForm(LoginHandler):
+    """Uses mechanize library to log in"""
+
     def login(self) -> mechanize.Browser:
         response = self._log_in()
         html = response.read().decode("utf-8") if response is not None else ""
-        self._validate_logged_in(html)  # raises AuthenticationError if not ok
+        _validate_logged_in(html)  # raises AuthenticationError if not ok
         return self._br
 
     def _log_in(self):
@@ -67,145 +68,80 @@ class LoginByForm(LoginHandler):
             ) from e
         return response
 
-    @staticmethod
-    def _validate_logged_in(html: str):
-        _log.debug("Checking if login is successful ...")
-        if "Profiel" not in html:
-            if (
-                "privacyverklaring is gewijzigd" in html
-                or "akkoord met de privacyverklaring" in html
-            ):
-                raise AuthenticationError(
-                    "Login not accepted (likely need to accept privacy statement again)"
-                )
-            else:
-                raise AuthenticationError("Login not accepted")
-        _log.debug("Login was successful")
-
 
 class LoginByOAuth(LoginHandler):
+    """Uses requests library to log in.
+
+    This login handler is planned to replace the LoginByForm handler completely,
+    to allow to get rid of the mechanize external dependency.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._s = requests.Session()
-        # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
+        self._s.cookies = self._br.cookiejar  # load cookies from earlier session(s)
         # Set some general request parameters, see https://stackoverflow.com/a/59317604/50899
         self._s.request = functools.partial(self._s.request, timeout=TIMEOUT)  # type: ignore
         self._s.headers["User-Agent"] = USER_AGENT
-        self._s.headers["Content-Type"] = "application/json"
 
     def login(self) -> mechanize.Browser:
-        self._log_in()
+        response = self._log_in()
+        html = response.text if response is not None else ""
+        _validate_logged_in(html)  # raises AuthenticationError if not ok
         self._br.set_cookiejar(self._s.cookies)  # Transfer from requests to mechanize session
         return self._br
 
     def _log_in(self):
-        # Note: flow adapted from https://github.com/myTselection/bibliotheek_be
+        # Flow is:
+        # (1) GET   https://bibliotheek.be/mijn-bibliotheek/aanmelden          ?destination=/mijn-bibliotheek/lidmaatschappen
+        #           then, via 302 auto-redirect
+        #     GET   https://mijn.bibliotheek.be/openbibid/rest/auth/authorize  ?hint=login&oauth_callback=...&oauth_token=...&uilang=nl
+        # (2) POST  https://mijn.bibliotheek.be/openbibid/rest/auth/login
+        #           then, via 303 auto-redirect
+        #     GET   https://bibliotheek.be/my-library/login/callback           ?oauth_token=...&oauth_verifier=...&uilang=nl
+        #           then, via 302 auto-redirect (from destination param)
+        #     GET   https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen
 
-        # (1) Get OAuth2 state / nonce
-        # GET https://gent.bibliotheek.be/mijn-bibliotheek/aanmelden
-        # example response:
-        # header Location: https://mijn.bibliotheek.be/openbibid/rest/auth/authorize?hint=login&oauth_callback=https://gent.bibliotheek.be/my-library/login/callback&oauth_token=5abee3c0f5c04beead64d8e625ead0e7&uilang=nl
-        _log.debug("----")
-        response = self._s.get(self._url, allow_redirects=False)
-        _log.debug(f"login (1) status code       : {response.status_code}")
-        _log.debug(f"login (1) headers           : {response.headers}")
-        _log.debug(f"login (1) cookies           : {response.cookies}")
-        oauth_location_url = response.headers.get("location", "")
-        oauth_locationurl_parsed = urlsplit(oauth_location_url)
-        query_params = parse_qs(oauth_locationurl_parsed.query)
-        oauth_callback_url = query_params.get("oauth_callback")
-        oauth_token = query_params.get("oauth_token")
-        hint = query_params.get("hint")
-        _log.debug(f"login (1) oauth_location_url: {oauth_location_url}")
-        _log.debug(f"login (1) oauth_callback_url: {oauth_callback_url}")
-        _log.debug(f"login (1) oauth_token       : {oauth_token}")
-        _log.debug(f"login (1) hint              : {hint}")
-        if response.status_code >= 500:  # we've observed 500, 502 and 503:
-            raise TemporarySiteError(
-                f"Expected status code 302 during log in. Got '{response.status_code}'"
-            )
-        if response.status_code != 302:
-            raise IncompatibleSourceError(
-                f"Expected status code 302 during log in. Got '{response.status_code}'",
-                response.text,
-            )
-        if "/mijn-bibliotheek/overzicht" in oauth_location_url:
-            _log.info("Already authenticated. No need to log in again.")
-            return response  # better for extensibility (i.e. sOlid)
+        _log.debug("Opening login page ... ")
+        response = self._s.get(self._url)
+        # Will perform auto-redirect to
+        # https://mijn.bibliotheek.be/openbibid/rest/auth/authorize?
+        #   hint=login&oauth_callback=https%3A//bibliotheek.be/my-library/login/callback
+        #   &oauth_token=*******&uilang=nl
+        auth_url = response.url
+        auth_url_parsed = urlsplit(auth_url)
+        qp = parse_qs(auth_url_parsed.query)
+        _log.debug(f"auth_url     : {auth_url}")
+        _log.debug(f"query params : {qp}")
+        if qp == {}:
+            _log.debug("Looks like we are still or already logged in. Skip auth/login call")
+            return response
 
-        # (2) Authorize based on Location url (get session id)
-        _log.debug("----")
-        response = self._s.get(oauth_location_url, allow_redirects=False)
-        _log.debug(f"login (2) status code       : {response.status_code}")
-        _log.debug(f"login (2) headers           : {response.headers}")
-        _log.debug(f"login (2) cookies           : {response.cookies}")
-        if response.status_code != 200:
-            raise IncompatibleSourceError(
-                f"Expected status code 200 during log in. Got '{response.status_code}'",
-                response.text,
-            )
-
-        # (3) Login with username, password & token
-        # example response:
-        # header Location: https://gent.bibliotheek.be/my-library/login/callback?oauth_token=*********&oauth_verifier=*********&uilang=nl
-        url = "https://mijn.bibliotheek.be/openbibid/rest/auth/login"
+        _log.debug("Doing login call ... ")
         data = {
-            "hint": hint,
-            "token": oauth_token,
-            "callback": oauth_callback_url,
+            "hint": qp.get("hint"),  # "login"
+            "token": qp.get("oauth_token"),  # 32-char string
+            "callback": qp.get("oauth_callback"),  # "https://bibliotheek.be/my-library/login/callback"   # fmt:skip
             "email": self._username,
             "password": self._pwd,
         }
-        _log.debug("----")
-        response = self._s.post(url, data=data, allow_redirects=False)
-        _log.debug(f"login (3) status code       : {response.status_code}")
-        _log.debug(f"login (3) headers           : {response.headers}")
-        login_location_url = response.headers.get("location", "")
-        login_locationurl_parsed = urlsplit(login_location_url)
-        login_query_params = parse_qs(login_locationurl_parsed.query)
-        oauth_verifier = login_query_params.get("oauth_verifier")
-        oauth_token = query_params.get("oauth_token")
-        hint = query_params.get("hint")
-        _log.debug(f"login (3) login_location_url: {login_location_url}")
-        _log.debug(f"login (3) oauth_verifier    : {oauth_verifier}")
-        _log.debug(f"login (3) oauth_token       : {oauth_token}")
-        _log.debug(f"login (3) hint              : {hint}")
-        if response.status_code == 200:
-            raise AuthenticationError("Login not accepted. Correct credentials?")
-        if response.status_code >= 500:  # we've observed 500
-            raise TemporarySiteError(
-                f"Expected status code 303 during log in. Got '{response.status_code}'"
-            )
-        if response.status_code != 303:
-            raise IncompatibleSourceError(
-                f"Expected status code 303 during log in. Got '{response.status_code}'",
-                response.text,
-            )
+        url = "https://mijn.bibliotheek.be/openbibid/rest/auth/login"
+        response = self._s.post(url, data=data)
+        return response
 
-        # (4) Call login callback based on Location url
-        _log.debug("----")
-        response = self._s.get(login_location_url, allow_redirects=False)
-        _log.debug(f"login (4) status code       : {response.status_code}")
-        _log.debug(f"login (4) headers           : {response.headers}")
-        _log.debug(f"login (4) cookies           : {response.cookies}")
-        # _log.debug(f"login (4) text              : {response.text}")
 
-        # Note: the above request gives a 302 redirection, but we don't follow it (too costly)
-
-        # Soft verification if we are logged in
-        if ("mijn-bibliotheek/overzicht" not in response.headers.get("location", "")) and (
-            "mijn-bibliotheek/lidmaatschappen" not in response.headers.get("location", "")
+def _validate_logged_in(html: str) -> None:
+    """Raises AuthenticationError if login failed."""
+    _log.debug("Checking if login is successful ...")
+    if "Profiel" not in html:
+        if (
+            "privacyverklaring is gewijzigd" in html
+            or "akkoord met de privacyverklaring" in html
         ):
-            _log.warning(
-                f"Not clear if properly logged in (as '{self._username}'). Was expecting "
-                "'mijn-bibliotheek/overzicht' or 'mijn-bibliotheek/lidmaatschappen' "
-                "in location header, but couldn't find it"
+            raise AuthenticationError(
+                "Login not accepted (likely need to accept privacy statement again)"
             )
-            _log.warning(
-                "Related troubleshooting info. "
-                f"Status code: '{response.status_code}'. "
-                f"Headers: '{response.headers}'"
-            )
-
-        return response  # better for extensibility (i.e. sOlid)
+        else:
+            raise AuthenticationError("Login not accepted")
+    _log.debug("Login was successful")
