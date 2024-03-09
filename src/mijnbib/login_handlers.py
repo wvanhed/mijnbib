@@ -32,6 +32,8 @@ class LoginHandler(ABC):
 
 
 class LoginByForm(LoginHandler):
+    """Uses mechanize library to log in"""
+
     def login(self) -> mechanize.Browser:
         response = self._log_in()
         html = response.read().decode("utf-8") if response is not None else ""
@@ -68,6 +70,12 @@ class LoginByForm(LoginHandler):
 
 
 class LoginByOAuth(LoginHandler):
+    """Uses requests library to log in.
+
+    This login handler is planned to replace the LoginByForm handler completely,
+    to allow to get rid of the mechanize external dependency.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
