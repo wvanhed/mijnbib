@@ -64,8 +64,6 @@ Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
         mb = MijnBibliotheek(username, password, login_by="oauth")
         accounts = mb.get_accounts()
 
-  ! Opmerking: De oauth flow is sinds maart 2024 broken, en vereist nog een aanpassing.
-
 - **Foutafhandeling**. Afhankelijk van de toepassing, kan het aangeraden zijn om
   foutafhandeling te voorzien. Het bestand `errors.py` bevat de lijst van
   Mijnbib-specifieke exceptions. De docstrings van de publieke methods bevatten
