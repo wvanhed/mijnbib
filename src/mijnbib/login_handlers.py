@@ -35,7 +35,7 @@ class LoginByForm(LoginHandler):
     def login(self) -> mechanize.Browser:
         response = self._log_in()
         html = response.read().decode("utf-8") if response is not None else ""
-        self._validate_logged_in(html)  # raises AuthenticationError if not ok
+        _validate_logged_in(html)  # raises AuthenticationError if not ok
         return self._br
 
     def _log_in(self):
@@ -66,21 +66,6 @@ class LoginByForm(LoginHandler):
             ) from e
         return response
 
-    @staticmethod
-    def _validate_logged_in(html: str):
-        _log.debug("Checking if login is successful ...")
-        if "Profiel" not in html:
-            if (
-                "privacyverklaring is gewijzigd" in html
-                or "akkoord met de privacyverklaring" in html
-            ):
-                raise AuthenticationError(
-                    "Login not accepted (likely need to accept privacy statement again)"
-                )
-            else:
-                raise AuthenticationError("Login not accepted")
-        _log.debug("Login was successful")
-
 
 class LoginByOAuth(LoginHandler):
     def __init__(self, *args, **kwargs):
@@ -95,7 +80,7 @@ class LoginByOAuth(LoginHandler):
     def login(self) -> mechanize.Browser:
         response = self._log_in()
         html = response.text if response is not None else ""
-        self._validate_logged_in(html)  # raises AuthenticationError if not ok
+        _validate_logged_in(html)  # raises AuthenticationError if not ok
         self._br.set_cookiejar(self._s.cookies)  # Transfer from requests to mechanize session
         return self._br
 
@@ -137,17 +122,18 @@ class LoginByOAuth(LoginHandler):
         response = self._s.post(url, data=data)
         return response
 
-    @staticmethod
-    def _validate_logged_in(html: str):
-        _log.debug("Checking if login is successful ...")
-        if "Profiel" not in html:
-            if (
-                "privacyverklaring is gewijzigd" in html
-                or "akkoord met de privacyverklaring" in html
-            ):
-                raise AuthenticationError(
-                    "Login not accepted (likely need to accept privacy statement again)"
-                )
-            else:
-                raise AuthenticationError("Login not accepted")
-        _log.debug("Login was successful")
+
+def _validate_logged_in(html: str) -> None:
+    """Raises AuthenticationError if login failed."""
+    _log.debug("Checking if login is successful ...")
+    if "Profiel" not in html:
+        if (
+            "privacyverklaring is gewijzigd" in html
+            or "akkoord met de privacyverklaring" in html
+        ):
+            raise AuthenticationError(
+                "Login not accepted (likely need to accept privacy statement again)"
+            )
+        else:
+            raise AuthenticationError("Login not accepted")
+    _log.debug("Login was successful")
