@@ -2,9 +2,13 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.5.6 - 2024-03-09
+
+- fix: broken login (oauth)
+
 ## v0.5.5 - 2024-03-05
 
-- fix: broken login (form) because of change at site. 
+- fix: broken login (form) because of change at site.
   Note: alternative oauth login still broken.
 - impr: raise TemporarySiteError at oauth login when 5xx (part 3)
 
