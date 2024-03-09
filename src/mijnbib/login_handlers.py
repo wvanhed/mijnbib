@@ -87,7 +87,7 @@ class LoginByOAuth(LoginHandler):
         super().__init__(*args, **kwargs)
 
         self._s = requests.Session()
-        # self._s.cookies = self._br.cookiejar # load cookies from earlier session(s)
+        self._s.cookies = self._br.cookiejar  # load cookies from earlier session(s)
         # Set some general request parameters, see https://stackoverflow.com/a/59317604/50899
         self._s.request = functools.partial(self._s.request, timeout=TIMEOUT)  # type: ignore
         self._s.headers["User-Agent"] = USER_AGENT
@@ -121,6 +121,9 @@ class LoginByOAuth(LoginHandler):
         qp = parse_qs(auth_url_parsed.query)
         _log.debug(f"auth_url     : {auth_url}")
         _log.debug(f"query params : {qp}")
+        if qp == {}:
+            _log.debug("Looks like we are still or already logged in. Skip auth/login call")
+            return response
 
         _log.debug("Doing login call ... ")
         data = {
