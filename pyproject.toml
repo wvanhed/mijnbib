@@ -38,7 +38,11 @@ line-length = 95 # same as Black
 
 [tool.ruff.lint]
 extend-select = [
-    "W", # warning
-    "B", # flake8-bugbear
-    # "SIM", # flake8-simplify, for simplified code
+    "W",   # warning
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify, for simplified code
+]
+ignore = [
+    "SIM105", # suppressible-exception (contextlib usage)
+    "SIM910", # dict-get-with-none-default
 ]
