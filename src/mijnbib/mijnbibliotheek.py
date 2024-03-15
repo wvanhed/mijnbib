@@ -263,7 +263,7 @@ class MijnBibliotheek:
                 raise e
 
         # disclaimer: not sure if other codes are realistic
-        success = response.code == 200
+        success = response.code == 200 if response is not None else False
 
         if success:
             _log.debug("Looks like extending the loan(s) was successful")
@@ -271,7 +271,7 @@ class MijnBibliotheek:
         # Try to add result details, but don't fail if we fail to parse details, it's tricky :-)
         try:
             # On submit, we arrive at "uitleningen" (loans) page, which lists the result
-            html_string = response.read().decode("utf-8")
+            html_string = response.read().decode("utf-8")  # type:ignore
             # Path("response.html").write_text("html_string")  # for debugging
             details = ExtendResponsePageParser(html_string).parse()
             if "likely_success" in details and details["likely_success"] is False:
