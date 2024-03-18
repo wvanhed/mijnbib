@@ -29,9 +29,9 @@ class Reservation:
     author: str
     location: str
     available: bool
-    available_till: date | None = None
-    request_on: date | None = None
-    valid_till: date | None = None
+    available_till: date | None = None  # if available==True, indicates available untill
+    request_on: date | None = None  # date of initial request for reservation
+    valid_till: date | None = None  # request valid untill; once available, this becomes None
 
 
 @dataclass
