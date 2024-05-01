@@ -1,3 +1,10 @@
+"""Provides a command line interface for this package.
+
+A __main__.py file is executed when the package itself is invoked directly from
+the command line using the -m flag, that is:
+    python -m mijnbib
+"""
+
 import argparse
 import configparser
 import logging
