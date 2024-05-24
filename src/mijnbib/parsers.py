@@ -557,6 +557,7 @@ class ExtendResponsePageParser(Parser):
         """
 
         def find_between(s: str, start: str, end: str):
+            """find_between("aabbcc", "aa", "cc") returns "bb" """
             return s[s.find(start) + len(start) : s.rfind(end)]
 
         # find relevant snippet
