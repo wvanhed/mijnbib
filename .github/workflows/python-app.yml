@@ -8,6 +8,9 @@ on:
     branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main", "develop" ]
+  schedule:
+      # periodically check if latest library versions don't cause issues
+      - cron: "10 06 */7 * *"
 
 permissions:
   contents: read
