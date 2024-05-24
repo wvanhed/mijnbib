@@ -108,7 +108,7 @@ You need `make` as well. For installation on Windows, see the options at
 Running the tests and applying code formatting can be done via:
 
     make test
-    make black
+    make format
 
 To work around the challenge of testing a web scraper, the following *snapshot
 testing* approach can be used to get some confidence when applying refactoring:

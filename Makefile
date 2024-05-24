@@ -1,4 +1,4 @@
-all: clean lint blackcheck test build
+all: clean lint formatcheck test build
 
 test:
 	pytest -v
@@ -6,25 +6,18 @@ test:
 	python -m doctest src/mijnbib/parsers.py
 	python -m doctest src/mijnbib/models.py
 
-black:
-	isort --skip-glob="**/venv*" \
-		  --profile=black \
-		  .
-
-	black -l 95 --exclude "venv*" .
+black: format # legacy alias
+format:
+	ruff check --select I . --fix 
+	ruff format .
 
 lint:
 	ruff check .
 
 # For CI/CD pipeline
-blackcheck:
-	isort --skip-glob="**/venv*" \
-		  --profile=black \
-		  --check \
-		  .	
-	black -l 95 --exclude "venv*" \
-		  --check \
-		  .
+formatcheck:
+	ruff check --select I .
+	ruff format --check .
 
 clean:
 	rm -rf dist

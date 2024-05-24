@@ -37,7 +37,7 @@ jobs:
     - name: Validate code formatted
       run: |
         make lint
-        make blackcheck
+        make formatcheck
     - name: Run tests
       run: |
         make test

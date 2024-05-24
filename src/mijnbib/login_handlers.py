@@ -122,10 +122,10 @@ class LoginByOAuth(LoginHandler):
         data = {
             "hint": qp.get("hint"),  # "login"
             "token": qp.get("oauth_token"),  # 32-char string
-            "callback": qp.get("oauth_callback"),  # "https://bibliotheek.be/my-library/login/callback"   # fmt:skip
+            "callback": qp.get("oauth_callback"),  # "https://bibliotheek.be/my-library/login/callback"
             "email": self._username,
             "password": self._pwd,
-        }
+        }  # fmt:skip
         url = "https://mijn.bibliotheek.be/openbibid/rest/auth/login"
         response = self._s.post(url, data=data)
         return response

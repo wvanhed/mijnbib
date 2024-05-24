@@ -19,7 +19,7 @@ dependencies = ["mechanize", "bs4", "requests"]
 requires-python = ">=3.8"
 
 [project.optional-dependencies]
-dev = ["black", "isort", "pytest", "ruff"]
+dev = ["ruff >=0.4", "pytest"]
 
 [project.urls]
 Homepage = "https://github.com/wvanhed/mijnbib"
@@ -30,11 +30,9 @@ minversion = "7.0"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 # addopts = "--doctest-modules --doctest-continue-on-failure"
 
-[tool.isort]
-profile = "black"
-
 [tool.ruff]
 line-length = 95 # same as Black
+src = ["src"]    # consider folder as first-party import
 
 [tool.ruff.lint]
 extend-select = [
