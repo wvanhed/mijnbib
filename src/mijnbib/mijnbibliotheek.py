@@ -1,5 +1,5 @@
-"""
-Webscraper module for interacting with the mijn.bibliotheek.be website.
+"""Webscraper module for interacting with the mijn.bibliotheek.be website.
+
 Created (initial version) on July 14, 2015
 
 For usage of this module, see the examples folder and the docstrings
@@ -168,12 +168,12 @@ class MijnBibliotheek:
         return accounts
 
     def get_all_info(self, all_as_dicts=False) -> dict:
-        """Returns all available information, for all accounts.
+        """Return all available information, for all accounts.
 
         Information is returned as a dict, with account ids as keys.
 
         Args:
-            all_as_dicts    When True, do not return dataclass objects, but dicts
+            all_as_dicts:   When True, do not return dataclass objects, but dicts
                             instead.
         Raises:
             AuthenticationError

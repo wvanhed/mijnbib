@@ -36,14 +36,16 @@ src = ["src"]    # consider folder as first-party import
 
 [tool.ruff.lint]
 extend-select = [
-    "B",   # flake8-bugbear
-    "I",   # isort
-    "N",   # pep8 naming
-    "SIM", # flake8-simplify, for simplified code
-    "PTH", # pathlib (instead of os.path)
-    "W",   # warning
-    "T2",  # flake8-print (avoiding prints)
-    "S",   # bandit, security checks
+    "B",    # flake8-bugbear
+    "D212", # docstring first line should end with period
+    "D415", # multiline docstring should start at first line
+    "I",    # isort
+    "N",    # pep8 naming
+    "PTH",  # pathlib (instead of os.path)
+    "S",    # bandit, security checks
+    "SIM",  # flake8-simplify, for simplified code
+    "T2",   # flake8-print (avoiding prints)
+    "W",    # warning
 ]
 ignore = [
     "N818",   # error suffix in exception names
@@ -52,6 +54,8 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"**/tests/*" = ["T"]
+"**/tests/*" = [
+    "S101", # Use of `assert` detected
+    "T",    # flake8-print (avoiding prints)
+]
 "examples/*" = ["T"]
-"**/tests*" = ["S101"] # Use of `assert` detected

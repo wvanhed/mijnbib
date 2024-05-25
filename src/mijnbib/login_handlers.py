@@ -32,7 +32,7 @@ class LoginHandler(ABC):
 
 
 class LoginByForm(LoginHandler):
-    """Uses mechanize library to log in"""
+    """Uses mechanize library to log in."""
 
     def login(self) -> mechanize.Browser:
         response = self._log_in()
@@ -132,7 +132,7 @@ class LoginByOAuth(LoginHandler):
 
 
 def _validate_logged_in(html: str) -> None:
-    """Raises AuthenticationError if login failed."""
+    """Raise AuthenticationError if login failed."""
     _log.debug("Checking if login is successful ...")
     if "Profiel" not in html:
         if (

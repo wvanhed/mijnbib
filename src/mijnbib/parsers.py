@@ -38,7 +38,7 @@ class LoansListPageParser(Parser):
         self._acc_id = account_id
 
     def parse(self) -> list[Loan]:
-        """Return loans
+        """Return loans.
 
         >>> html_string='''
         ... <div class="my-library-user-library-account-loans__loan-wrapper">
@@ -138,7 +138,7 @@ class LoansListPageParser(Parser):
         return loans
 
     def _get_loan_info_from_div(self, loan_div_html: str, branch: str) -> Loan:
-        """Return loan from html loan_div blob"""
+        """Return loan from html loan_div blob."""
         loan_div = BeautifulSoup(loan_div_html, "html.parser")
         loan = {}
 
@@ -229,7 +229,7 @@ class AccountsListPageParser(Parser):
         self._base_url = base_url
 
     def parse(self) -> list[Account]:
-        """Return list of accounts
+        """Return list of accounts.
 
         >>> html_string = '''
         ... ...
@@ -376,7 +376,7 @@ class AccountsListPageParser(Parser):
 
     @staticmethod
     def _parse_item_count_from_li(acc_div, class_: str) -> int | None:
-        """Return None if no info found, otherwise return item count (potentially 0)"""
+        """Return None if no info found, otherwise return item count (potentially 0)."""
         item_count = None
         try:
             acc_a_text = acc_div.find("li", class_=class_).a.get_text().strip()
@@ -396,7 +396,7 @@ class ReservationsPageParser(Parser):
         self._html = html
 
     def parse(self) -> list[Reservation]:
-        """Return list of holds
+        """Return list of holds.
 
         >>> html_string='''
         ... <div class="my-library-user-library-account-holds__hold-wrapper">
@@ -544,20 +544,20 @@ class ExtendResponsePageParser(Parser):
         self._html = html
 
     def parse(self) -> dict:
-        """For dict structure, see the called method"""
+        """For dict structure, see the called method."""
         html_blob = self._extract_html_from_response_script_tag()
         return self._parse_extend_response_status_blob(html_blob)
 
     def _extract_html_from_response_script_tag(self):
-        """
+        """Return html-encoded data from ajax encoded data.
+
         The extending loan response contains the result in a ajax script thingy.
         This function extracts the part we are interested in and returns the decoded html.
-
         See the tests for an example.
         """
 
         def find_between(s: str, start: str, end: str):
-            """find_between("aabbcc", "aa", "cc") returns "bb" """
+            # find_between("aabbcc", "aa", "cc") returns "bb"
             return s[s.find(start) + len(start) : s.rfind(end)]
 
         # find relevant snippet
@@ -575,7 +575,7 @@ class ExtendResponsePageParser(Parser):
 
     @classmethod
     def _parse_extend_response_status_blob(cls, html_string: str) -> dict:
-        """Return details on loans that where extended succesfully
+        """Return details on loans that where extended succesfully.
 
         >>> html_string = '''
         ... <div role="contentinfo" aria-label="Statusbericht" class="messages messages--status"
