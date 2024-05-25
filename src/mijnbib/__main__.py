@@ -1,3 +1,4 @@
+# ruff: noqa: T201, T203  # ignore print statements
 """Provides a command line interface for this package.
 
 A __main__.py file is executed when the package itself is invoked directly from

@@ -36,11 +36,20 @@ src = ["src"]    # consider folder as first-party import
 
 [tool.ruff.lint]
 extend-select = [
-    "W",   # warning
     "B",   # flake8-bugbear
+    "I",   # isort
+    "N",   # pep8 naming
     "SIM", # flake8-simplify, for simplified code
+    "PTH", # pathlib (instead of os.path)
+    "W",   # warning
+    "T2"
 ]
 ignore = [
+    "N818",   # error suffix in exception names
     "SIM105", # suppressible-exception (contextlib usage)
     "SIM910", # dict-get-with-none-default
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = ["T"]
+"examples/*" = ["T"]
