@@ -1,3 +1,4 @@
+# ruff: noqa: S301  # suspicious-pickle-usage
 import configparser
 import pickle
 import sys

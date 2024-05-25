@@ -42,7 +42,8 @@ extend-select = [
     "SIM", # flake8-simplify, for simplified code
     "PTH", # pathlib (instead of os.path)
     "W",   # warning
-    "T2"
+    "T2",  # flake8-print (avoiding prints)
+    "S",   # bandit, security checks
 ]
 ignore = [
     "N818",   # error suffix in exception names
@@ -53,3 +54,4 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "**/tests/*" = ["T"]
 "examples/*" = ["T"]
+"**/tests*" = ["S101"] # Use of `assert` detected
