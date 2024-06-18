@@ -1,0 +1,26 @@
+name: Lint markdown files
+# From: https://github.com/marketplace/actions/markdown-linting-action
+# Overview of markdownlint: https://github.com/DavidAnson/markdownlint
+# VSC plugin: https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-changelog:
+    name: Lint markdown files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Lint markdown
+        uses: docker://avtodev/markdown-lint:v1 # fastest way
+        with:
+          # rules: ".changelog-rules.js"
+          # config: ".markdownlint.yml"
+          args: "./README.md ./changelog.md"
+          # ignore: './one_file.md ./another_file.md' # multiple files must be separated with single space
