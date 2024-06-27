@@ -9,6 +9,7 @@ import pytest
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
+from mijnbib.models import Loan
 
 CONFIG_FILE = "mijnbib.ini"
 
@@ -25,6 +26,12 @@ class X(str):
 
 
 class FakeMechanizeBrowser:
+    """Fake Browser for easier testing.
+
+    Set the string to be returned upon form submission using `form_response`.
+    Customize the string for faking (in)valid login responses.
+    """
+
     def __init__(self, form_response: str) -> None:
         self._form_response = form_response.encode("utf8")
         # trick for nested prop, from https://stackoverflow.com/a/35190607/50899
@@ -146,3 +153,21 @@ class TestRealLogins:
 
         assert "already logged in" in caplog.text  # to verify we do take fast lane
         assert mb._logged_in
+
+
+class TestCustomParser:
+    def test_loan_page_parser_can_be_overridden(self):
+        # Arrange
+        class MyCustomLoanParser:
+            def parse(self, _html, _base_url, _account_id):
+                return [Loan("some title")]
+
+        mb = MijnBibliotheek("user", "pwd")
+        # Fake both (a) valid login, and (b) some reponse on fetching loans page
+        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
+
+        # Act
+        mb._loans_page_parser = MyCustomLoanParser()  # type:ignore
+
+        # Assert
+        assert mb.get_loans(account_id="whatever") == [Loan("some title")]

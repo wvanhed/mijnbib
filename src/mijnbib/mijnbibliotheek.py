@@ -72,6 +72,9 @@ class MijnBibliotheek:
         self._br.set_handle_robots(False)
         self._br.set_header("User-Agent", USER_AGENT)
 
+        # Open the door for overriding parsers (but still keep private for now)
+        self._loans_page_parser = LoansListPageParser()
+
     # *** PUBLIC METHODS ***
 
     def login(self) -> None:
@@ -113,7 +116,7 @@ class MijnBibliotheek:
         url = self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen"
         html_string = self._open_account_loans_page(url)
         try:
-            loans = LoansListPageParser(html_string, self.BASE_URL, account_id).parse()
+            loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
         except TemporarySiteError as e:
             raise e
         except Exception as e:

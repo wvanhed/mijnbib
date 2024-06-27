@@ -31,13 +31,14 @@ class Parser(ABC):
         pass
 
 
-class LoansListPageParser(Parser):
-    def __init__(self, html: str, base_url: str, account_id: str):
-        self._html = html
-        self._base_url = base_url
-        self._acc_id = account_id
+class ParserNew(ABC):
+    @abstractmethod
+    def parse(self, html: str, *args, **kwargs):
+        pass
 
-    def parse(self) -> list[Loan]:
+
+class LoansListPageParser(ParserNew):
+    def parse(self, html: str, base_url: str, account_id: str) -> list[Loan]:
         """Return loans.
 
         >>> html_string='''
@@ -87,7 +88,7 @@ class LoansListPageParser(Parser):
         ... </div>
         ... </div>
         ... '''
-        >>> LoansListPageParser(html_string,"https://city.bibliotheek.be","123456").parse() # doctest: +NORMALIZE_WHITESPACE
+        >>> LoansListPageParser().parse(html_string,"https://city.bibliotheek.be","123456") # doctest: +NORMALIZE_WHITESPACE
         [Loan(title='Erebus', loan_from=datetime.date(2023, 11, 25), loan_till=datetime.date(2023, 12, 23),
             author='Palin, Michael', type='Boek', extendable=True,
             extend_url='https://city.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/374052/uitleningen/verlengen?loan-ids=6207416',
@@ -96,7 +97,6 @@ class LoansListPageParser(Parser):
             cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
             account_id='123456')]
         """
-        html = self._html
 
         loans = []
         soup = BeautifulSoup(html, "html.parser")
@@ -129,7 +129,9 @@ class LoansListPageParser(Parser):
             elif child.name == "div":  # loan div
                 # we convert child soup object to string, so called function
                 # can be used also easily for unit tests
-                loan = self._get_loan_info_from_div(str(child), branch_name)
+                loan = self._get_loan_info_from_div(
+                    str(child), base_url, branch_name, account_id
+                )
                 loans.append(loan)
             else:
                 # should not happen, fail gracefully for now.
@@ -137,7 +139,9 @@ class LoansListPageParser(Parser):
         _log.debug("Number of loans found: %s", len(loans))
         return loans
 
-    def _get_loan_info_from_div(self, loan_div_html: str, branch: str) -> Loan:
+    def _get_loan_info_from_div(
+        self, loan_div_html: str, base_url: str, branch: str, acc_id: str
+    ) -> Loan:
         """Return loan from html loan_div blob."""
         loan_div = BeautifulSoup(loan_div_html, "html.parser")
         loan = {}
@@ -196,7 +200,7 @@ class LoansListPageParser(Parser):
             else:
                 loan["extendable"] = True
                 extend_url = extend_loan_div.a["href"]  # type:ignore
-                extend_url = urllib.parse.urljoin(self._base_url, extend_url)  # type:ignore
+                extend_url = urllib.parse.urljoin(base_url, extend_url)  # type:ignore
                 loan["extend_url"] = extend_url
                 loan["extend_id"] = extend_loan_div.input.get("id")
         except AttributeError:
@@ -219,7 +223,7 @@ class LoansListPageParser(Parser):
             id=loan.get("id", ""),
             url=loan.get("url", ""),
             cover_url=loan.get("cover_url", ""),
-            account_id=self._acc_id,
+            account_id=acc_id,
         )
 
 

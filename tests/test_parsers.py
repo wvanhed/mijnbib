@@ -21,8 +21,8 @@ class TestAccountsListPageParser:
 class TestLoansListPageParser:
     def test_parse_account_loans_page(self):
         # Happy flow test --> see doctest
-        assert LoansListPageParser("", "", "").parse() == []
-        assert LoansListPageParser("bogus", "", "").parse() == []
+        assert LoansListPageParser().parse(html="", base_url="", account_id="") == []
+        assert LoansListPageParser().parse(html="bogus", base_url="", account_id="") == []
 
 
 class TestReservationsPageParser:
