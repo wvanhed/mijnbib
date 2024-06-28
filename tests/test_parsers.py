@@ -11,7 +11,7 @@ from mijnbib.parsers import (
 class TestAccountsListPageParser:
     def test_parse_accounts_list_page(self):
         # Happy flow test --> see doctest
-        assert AccountsListPageParser("", "https://example.com").parse() == []
+        assert AccountsListPageParser().parse("", "https://example.com") == []
 
     def test_parse_item_count_from_li(self):
         assert AccountsListPageParser._parse_item_count_from_li("", "") is None

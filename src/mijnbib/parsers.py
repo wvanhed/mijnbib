@@ -227,12 +227,8 @@ class LoansListPageParser(ParserNew):
         )
 
 
-class AccountsListPageParser(Parser):
-    def __init__(self, html: str, base_url: str):
-        self._html = html
-        self._base_url = base_url
-
-    def parse(self) -> list[Account]:
+class AccountsListPageParser(ParserNew):
+    def parse(self, html: str, base_url: str) -> list[Account]:
         """Return list of accounts.
 
         >>> html_string = '''
@@ -266,13 +262,13 @@ class AccountsListPageParser(Parser):
         ... </div>
         ... ...
         ... '''
-        >>> AccountsListPageParser(html_string,"https://example.com").parse() # doctest: +NORMALIZE_WHITESPACE
+        >>> AccountsListPageParser().parse(html_string,"https://example.com") # doctest: +NORMALIZE_WHITESPACE
         [Account(library_name='Dijk92', user='Johny', id='374047', loans_count=0, loans_url='https://example.com/mijn-bibliotheek/lidmaatschappen/374047/uitleningen',
                  reservations_count=5, reservations_url='https://example.com/mijn-bibliotheek/lidmaatschappen/384767/reservaties',
                  open_amounts=0, open_amounts_url='')]
         """
         accounts = []
-        soup = BeautifulSoup(self._html, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
 
         library_divs = soup.find_all(
             "div", class_="my-library-user-library-account-list__library"
@@ -320,7 +316,7 @@ class AccountsListPageParser(Parser):
                 )
 
                 try:
-                    loans_url = self._base_url + acc_div.find(
+                    loans_url = base_url + acc_div.find(
                         "a", href=re.compile("uitleningen")
                     ).get("href")
                 except AttributeError:
@@ -331,7 +327,7 @@ class AccountsListPageParser(Parser):
                 )
 
                 try:
-                    holds_url = self._base_url + acc_div.find(
+                    holds_url = base_url + acc_div.find(
                         "a", href=re.compile("reservaties")
                     ).get("href")
                 except AttributeError:
@@ -357,7 +353,7 @@ class AccountsListPageParser(Parser):
                     open_amounts = 0
 
                 try:
-                    open_amounts_url = self._base_url + acc_div.find(
+                    open_amounts_url = base_url + acc_div.find(
                         "a", href=re.compile("betalen")
                     ).get("href")
                 except AttributeError:

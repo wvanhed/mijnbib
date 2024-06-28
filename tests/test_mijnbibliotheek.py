@@ -9,7 +9,7 @@ import pytest
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
-from mijnbib.models import Loan
+from mijnbib.models import Account, Loan
 
 CONFIG_FILE = "mijnbib.ini"
 
@@ -156,7 +156,7 @@ class TestRealLogins:
 
 
 class TestCustomParser:
-    def test_loan_page_parser_can_be_overridden(self):
+    def test_loans_page_parser_can_be_overridden(self):
         # Arrange
         class MyCustomLoanParser:
             def parse(self, _html, _base_url, _account_id):
@@ -171,3 +171,21 @@ class TestCustomParser:
 
         # Assert
         assert mb.get_loans(account_id="whatever") == [Loan("some title")]
+
+    def test_accounts_page_parser_can_be_overridden(self):
+        # Arrange
+        acc = Account("libname", "user", "id", 1, "loans_url", 1, "res_url", 1, "oa_url")
+
+        class MyCustomAccountsParser:
+            def parse(self, _html, _base_url):
+                return [acc]
+
+        mb = MijnBibliotheek("user", "pwd")
+        # Fake both (a) valid login, and (b) some reponse on fetching loans page
+        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
+
+        # Act
+        mb._accounts_page_parser = MyCustomAccountsParser()  # type:ignore
+
+        # Assert
+        assert mb.get_accounts() == [acc]

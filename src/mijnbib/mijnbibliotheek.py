@@ -74,6 +74,7 @@ class MijnBibliotheek:
 
         # Open the door for overriding parsers (but still keep private for now)
         self._loans_page_parser = LoansListPageParser()
+        self._accounts_page_parser = AccountsListPageParser()
 
     # *** PUBLIC METHODS ***
 
@@ -163,7 +164,7 @@ class MijnBibliotheek:
         response = self._br.open(url, timeout=TIMEOUT)  # pylint: disable=assignment-from-none
         html_string = response.read().decode("utf-8")  # type:ignore
         try:
-            accounts = AccountsListPageParser(html_string, self.BASE_URL).parse()
+            accounts = self._accounts_page_parser.parse(html_string, self.BASE_URL)
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping accounts ({str(e)})", html_body=""
