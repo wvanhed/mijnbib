@@ -45,7 +45,9 @@ Voor een meer leesbare versie, gebruik `pprint()`:
       branchname='Gent Hoofdbibliotheek',
       id='456789',
       url='https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789',
-      cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium')]
+      cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
+      account_id='123'
+      )]
 
 Voor meer voorbeelden, zie de code in de folder `examples`.
 Daarin wordt ook `asdict` gebruikt voor conversie naar een dictionary.

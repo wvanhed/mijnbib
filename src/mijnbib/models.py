@@ -36,6 +36,16 @@ class Reservation:
 
 @dataclass
 class Account:
+    """An account represents a user linked to a library.
+
+    Loans are always associated with a single account, via the account `id`.
+
+    A user might have multiple accounts, in case he is linked to multiple
+    libraries. The list of accounts that is visible to a logged in user consists
+    of his own account(s) as well of any other associated accounts he has access
+    to (e.g. children's accounts).
+    """
+
     library_name: str
     user: str
     id: str
