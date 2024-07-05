@@ -23,7 +23,7 @@ Bijvoorbeeld, het opvragen van je ontleende items kan als volgt (na installatie)
 
     username = "johndoe"
     password = "12345678"
-    account_id = "12345"  # zie het getal in de URL, of via mb.get_accounts()
+    account_id = "123"  # zie het getal in de URL, of via mb.get_accounts()
 
     mb = MijnBibliotheek(username, password)
     loans = mb.get_loans(account_id)
