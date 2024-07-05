@@ -76,6 +76,7 @@ class MijnBibliotheek:
         self._loans_page_parser = LoansListPageParser()
         self._accounts_page_parser = AccountsListPageParser()
         self._reservations_parser = ReservationsPageParser()
+        self._extend_response_page_parser = ExtendResponsePageParser()
 
     # *** PUBLIC METHODS ***
 
@@ -278,7 +279,7 @@ class MijnBibliotheek:
             # On submit, we arrive at "uitleningen" (loans) page, which lists the result
             html_string = response.read().decode("utf-8")  # type:ignore
             # Path("response.html").write_text("html_string")  # for debugging
-            details = ExtendResponsePageParser(html_string).parse()
+            details = self._extend_response_page_parser.parse(html_string)
             if "likely_success" in details and details["likely_success"] is False:
                 # Probably valid page (http=200) but with 'Foutmelding'
                 success = False

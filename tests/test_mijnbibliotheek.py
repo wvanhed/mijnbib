@@ -207,3 +207,6 @@ class TestCustomParser:
 
         # Assert
         assert mb.get_reservations(account_id="whatever") == [res]
+
+    # def test_extendresponse_parser_can_be_overridden(self):
+    # Not so easy to write test for

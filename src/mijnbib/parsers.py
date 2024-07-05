@@ -27,17 +27,11 @@ DATE_FORMAT = "%d/%m/%Y"
 
 class Parser(ABC):
     @abstractmethod
-    def parse(self):
-        pass
-
-
-class ParserNew(ABC):
-    @abstractmethod
     def parse(self, html: str, *args, **kwargs):
         pass
 
 
-class LoansListPageParser(ParserNew):
+class LoansListPageParser(Parser):
     def parse(self, html: str, base_url: str, account_id: str) -> list[Loan]:
         """Return loans.
 
@@ -227,7 +221,7 @@ class LoansListPageParser(ParserNew):
         )
 
 
-class AccountsListPageParser(ParserNew):
+class AccountsListPageParser(Parser):
     def parse(self, html: str, base_url: str) -> list[Account]:
         """Return list of accounts.
 
@@ -391,7 +385,7 @@ class AccountsListPageParser(ParserNew):
         return item_count
 
 
-class ReservationsPageParser(ParserNew):
+class ReservationsPageParser(Parser):
     def parse(self, html: str) -> list[Reservation]:
         """Return list of holds.
 
@@ -537,15 +531,13 @@ class ReservationsPageParser(ParserNew):
 
 
 class ExtendResponsePageParser(Parser):
-    def __init__(self, html: str):
-        self._html = html
-
-    def parse(self) -> dict:
+    def parse(self, html) -> dict:
         """For dict structure, see the called method."""
-        html_blob = self._extract_html_from_response_script_tag()
+        html_blob = self._extract_html_from_response_script_tag(html)
         return self._parse_extend_response_status_blob(html_blob)
 
-    def _extract_html_from_response_script_tag(self):
+    @classmethod
+    def _extract_html_from_response_script_tag(cls, html: str):
         """Return html-encoded data from ajax encoded data.
 
         The extending loan response contains the result in a ajax script thingy.
@@ -558,7 +550,7 @@ class ExtendResponsePageParser(Parser):
             return s[s.find(start) + len(start) : s.rfind(end)]
 
         # find relevant snippet
-        soup = BeautifulSoup(self._html, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
         script_txt = soup.find(
             "script", string=re.compile("(Statusbericht|Foutmelding)")
         ).get_text()

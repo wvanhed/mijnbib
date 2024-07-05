@@ -59,9 +59,9 @@ class TestExtendResponsePageParser:
         def clean_whitespace(s: str) -> str:
             return s.replace(" ", "").replace("\n", "")
 
-        actual_result = ExtendResponsePageParser(
+        actual_result = ExtendResponsePageParser._extract_html_from_response_script_tag(
             raw_html
-        )._extract_html_from_response_script_tag()
+        )
         assert clean_whitespace(actual_result) == clean_whitespace(expected_result)
 
     def test_parse_extend_response_status_blob__empty_case(self):
