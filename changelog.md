@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.6.0 - 2024-07-05
+
+- impr: [breaking] remove support for city parameter
+- impr: various improvements (documentation, linting, black->ruff, refactoring)
+
 ## v0.5.6 - 2024-03-09
 
 - fix: broken login (oauth)
