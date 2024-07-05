@@ -117,7 +117,7 @@ testing* approach can be used to get some confidence when applying refactoring:
 
 1. Create a file `mijnbib.ini` in the project root folder, and make it contain
    a section `[DEFAULT]` holding the following parameters: `username`,
-   `password`, `city` and `account_id`
+   `password` and `account_id`
 2. Run `python tests/save_testref.py` to capture and store the current output
    (a couple of files will be created)
 3. Perform refactoring as needed

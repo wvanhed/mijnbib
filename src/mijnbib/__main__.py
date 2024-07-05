@@ -19,10 +19,9 @@ CONFIG_FILE = "mijnbib.ini"
 
 def _do_login(args: argparse.Namespace):
     print("Trying to log in ...")
-    print(f"City:    : {args.city}")
     print(f"Username : {args.username}")
 
-    mb = MijnBibliotheek(args.username, args.password, args.city)
+    mb = MijnBibliotheek(args.username, args.password)
     try:
         mb.login()
     except AuthenticationError as e:
@@ -34,7 +33,7 @@ def _do_all(args: argparse.Namespace):
     print("Retrieving all information ...")
     print(f"Username : {args.username}")
 
-    mb = MijnBibliotheek(args.username, args.password, args.city)
+    mb = MijnBibliotheek(args.username, args.password)
     result = mb.get_all_info()
     pp.pprint(result)
 
@@ -43,7 +42,7 @@ def _do_accounts(args: argparse.Namespace):
     print("Retrieving accounts ...")
     print(f"Username : {args.username}")
 
-    mb = MijnBibliotheek(args.username, args.password, args.city)
+    mb = MijnBibliotheek(args.username, args.password)
     result = mb.get_accounts()
     pp.pprint(result)
 
@@ -53,7 +52,7 @@ def _do_loans(args: argparse.Namespace):
     print(f"Username : {args.username}")
     print(f"Account  : {args.accountid}")
 
-    mb = MijnBibliotheek(args.username, args.password, args.city)
+    mb = MijnBibliotheek(args.username, args.password)
     result = mb.get_loans(args.accountid)
     pp.pprint(result)
 
@@ -63,7 +62,7 @@ def _do_reservations(args: argparse.Namespace):
     print(f"Username : {args.username}")
     print(f"Account  : {args.accountid}")
 
-    mb = MijnBibliotheek(args.username, args.password, args.city)
+    mb = MijnBibliotheek(args.username, args.password)
     result = mb.get_reservations(args.accountid)
     pp.pprint(result)
 
@@ -73,7 +72,6 @@ def main():
     common_parser = argparse.ArgumentParser(add_help=False)
     common_parser.add_argument("-u", "--username")
     common_parser.add_argument("-p", "--password")
-    common_parser.add_argument("-c", "--city")
     common_parser.add_argument("-a", "--accountid")
 
     parser = argparse.ArgumentParser(
@@ -89,7 +87,6 @@ def main():
             "   [DEFAULT]\n"
             "   username = john\n"
             "   password = 123456\n"
-            "   city = gent    (can be blank)\n"
             "   accountid = 456"
         ),
     )

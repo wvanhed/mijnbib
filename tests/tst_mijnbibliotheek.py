@@ -17,7 +17,6 @@ try:
     username = config["DEFAULT"]["username"]
     password = config["DEFAULT"]["password"]
     account_id = config["DEFAULT"]["accountid"]
-    city = config["DEFAULT"]["city"]
 except KeyError as e:
     print(f"Create a file '{CONFIG_FILE}' that holds a section '[DEFAULT'] and the field {e}")
     sys.exit(-1)
@@ -30,7 +29,7 @@ except KeyError as e:
 def test_get_accounts():
     with Path(REF_ACCOUNTS).open("rb") as f:
         data_expected = pickle.load(f)
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_accounts()
     assert data_expected == data
 
@@ -42,7 +41,7 @@ def test_get_accounts():
 def test_get_loans():
     with Path(REF_LOANS).open("rb") as f:
         data_expected = pickle.load(f)
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_loans(account_id)
     assert data_expected == data
 
@@ -54,7 +53,7 @@ def test_get_loans():
 def test_get_holds():
     with Path(REF_HOLDS).open("rb") as f:
         data_expected = pickle.load(f)
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_reservations(account_id)
     assert data_expected == data
 
@@ -66,6 +65,6 @@ def test_get_holds():
 def test_get_allinfo():
     with Path(REF_ALLINFO).open("rb") as f:
         data_expected = pickle.load(f)
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_all_info()
     assert data_expected == data

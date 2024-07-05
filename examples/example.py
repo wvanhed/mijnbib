@@ -9,7 +9,6 @@ logging.getLogger().setLevel(logging.DEBUG)
 pp = pprint.PrettyPrinter()
 
 # Change the following values to match your situation
-# city = "gent" # this used to be required, but is optional since January 2024
 username = "johndoe"
 password = "password"  # noqa: S105
 account_id = "123456"

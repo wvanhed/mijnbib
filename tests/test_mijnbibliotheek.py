@@ -53,32 +53,32 @@ class FakeMechanizeBrowser:
 
 class TestLoginByOption:
     def test_login_by_options_default_is_by_form(self):
-        mb = MijnBibliotheek("user", "pwd", "city")
+        mb = MijnBibliotheek("user", "pwd")
         assert mb._login_handler_class == LoginByForm
 
     def test_login_by_options_by_form(self):
-        mb = MijnBibliotheek("user", "pwd", "city", "form")
+        mb = MijnBibliotheek("user", "pwd", "form")
         assert mb._login_handler_class == LoginByForm
 
     def test_login_by_options_by_oauth(self):
-        mb = MijnBibliotheek("user", "pwd", "city", "oauth")
+        mb = MijnBibliotheek("user", "pwd", "oauth")
         assert mb._login_handler_class == LoginByOAuth
 
     def test_login_by_options_invalid_option_raises_error(self):
         with pytest.raises(ValueError):
-            MijnBibliotheek("user", "pwd", "city", login_by="foo")
+            MijnBibliotheek("user", "pwd", login_by="foo")
 
 
 class TestFakedLogins:
     def test_login_ok(self):
-        mb = MijnBibliotheek("user", "pwd", "city")
+        mb = MijnBibliotheek("user", "pwd")
         mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
         mb.login()
 
         assert mb._logged_in
 
     def test_login_fails(self):
-        mb = MijnBibliotheek("user", "pwd", "city")
+        mb = MijnBibliotheek("user", "pwd")
         mb._br = FakeMechanizeBrowser(form_response="whatever")  # type: ignore
 
         with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
@@ -86,7 +86,7 @@ class TestFakedLogins:
         assert mb._logged_in is False
 
     def test_login_fails_because_of_privacy(self):
-        mb = MijnBibliotheek("user", "pwd", "city")
+        mb = MijnBibliotheek("user", "pwd")
         mb._br = FakeMechanizeBrowser(form_response="privacyverklaring is gewijzigd")  # type: ignore
 
         with pytest.raises(
@@ -104,13 +104,6 @@ class TestFakedLogins:
 class TestRealLogins:
     def test_login_by_form_ok(self, creds_config):
         d = creds_config
-        mb = MijnBibliotheek(d["username"], d["password"], d["city"], login_by="form")
-        mb.login()
-
-        assert mb._logged_in
-
-    def test_login_by_form_ok_no_city(self, creds_config):
-        d = creds_config
         mb = MijnBibliotheek(d["username"], d["password"], login_by="form")
         mb.login()
 
@@ -118,19 +111,12 @@ class TestRealLogins:
 
     def test_login_by_form_wrong_creds(self, creds_config):
         d = creds_config
-        mb = MijnBibliotheek(d["username"], "wrongpassword", d["city"], login_by="form")
+        mb = MijnBibliotheek(d["username"], "wrongpassword", login_by="form")
         with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
             mb.login()
         assert mb._logged_in is False
 
     def test_login_by_oauth_ok(self, creds_config):
-        d = creds_config
-        mb = MijnBibliotheek(d["username"], d["password"], d["city"], login_by="oauth")
-        mb.login()
-
-        assert mb._logged_in
-
-    def test_login_by_oauth_ok_no_city(self, creds_config):
         d = creds_config
         mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
         mb.login()
@@ -139,7 +125,7 @@ class TestRealLogins:
 
     def test_login_by_oauth_wrong_creds(self, creds_config):
         d = creds_config
-        mb = MijnBibliotheek(d["username"], "wrongpassword", d["city"], login_by="oauth")
+        mb = MijnBibliotheek(d["username"], "wrongpassword", login_by="oauth")
         with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
             mb.login()
         assert mb._logged_in is False

@@ -27,7 +27,6 @@ try:
     username = config["DEFAULT"]["username"]
     password = config["DEFAULT"]["password"]
     account_id = config["DEFAULT"]["accountid"]
-    city = config["DEFAULT"]["city"]
 except KeyError as e:
     print(f"Create a file '{CONFIG_FILE}' that holds a section '[DEFAULT'] and the field {e}")
     sys.exit(-1)
@@ -35,28 +34,28 @@ except KeyError as e:
 
 def save_accounts():
     print(f"Fetching accounts; saving to `{REF_ACCOUNTS}`")
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_accounts()
     _save(data, REF_ACCOUNTS)
 
 
 def save_loans():
     print(f"Fetching loans; saving to `{REF_LOANS}`")
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_loans(account_id)
     _save(data, REF_LOANS)
 
 
 def save_holds():
     print(f"Fetching holds; saving to `{REF_HOLDS}`")
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_reservations(account_id)
     _save(data, REF_HOLDS)
 
 
 def save_all_info():
     print(f"Fetching all info; saving to `{REF_ALLINFO}`")
-    mb = MijnBibliotheek(username, password, city)
+    mb = MijnBibliotheek(username, password)
     data = mb.get_all_info()
     _save(data, REF_ALLINFO)
 
