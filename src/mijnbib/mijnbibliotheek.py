@@ -75,6 +75,7 @@ class MijnBibliotheek:
         # Open the door for overriding parsers (but still keep private for now)
         self._loans_page_parser = LoansListPageParser()
         self._accounts_page_parser = AccountsListPageParser()
+        self._reservations_parser = ReservationsPageParser()
 
     # *** PUBLIC METHODS ***
 
@@ -141,7 +142,7 @@ class MijnBibliotheek:
         url = self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/reservaties"
         html_string = self._open_account_loans_page(url)  #  same structure as for loans
         try:
-            holds = ReservationsPageParser(html_string).parse()
+            holds = self._reservations_parser.parse(html_string)
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping reservations ({str(e)})", html_body=""

@@ -9,7 +9,7 @@ import pytest
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
-from mijnbib.models import Account, Loan
+from mijnbib.models import Account, Loan, Reservation
 
 CONFIG_FILE = "mijnbib.ini"
 
@@ -181,7 +181,7 @@ class TestCustomParser:
                 return [acc]
 
         mb = MijnBibliotheek("user", "pwd")
-        # Fake both (a) valid login, and (b) some reponse on fetching loans page
+        # Fake both (a) valid login, and (b) some reponse on fetching accounts page
         mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
 
         # Act
@@ -189,3 +189,21 @@ class TestCustomParser:
 
         # Assert
         assert mb.get_accounts() == [acc]
+
+    def test_reservations_parser_can_be_overridden(self):
+        # Arrange
+        res = Reservation("title", "dvd", "some_url", "author", "brussels", True)
+
+        class MyCustomReservationsParser:
+            def parse(self, _html):
+                return [res]
+
+        mb = MijnBibliotheek("user", "pwd")
+        # Fake both (a) valid login, and (b) some reponse on fetching reservations page
+        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
+
+        # Act
+        mb._reservations_parser = MyCustomReservationsParser()  # type:ignore
+
+        # Assert
+        assert mb.get_reservations(account_id="whatever") == [res]

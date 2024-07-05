@@ -391,11 +391,8 @@ class AccountsListPageParser(ParserNew):
         return item_count
 
 
-class ReservationsPageParser(Parser):
-    def __init__(self, html: str):
-        self._html = html
-
-    def parse(self) -> list[Reservation]:
+class ReservationsPageParser(ParserNew):
+    def parse(self, html: str) -> list[Reservation]:
         """Return list of holds.
 
         >>> html_string='''
@@ -435,13 +432,13 @@ class ReservationsPageParser(Parser):
         ...   </div>
         ... </div>
         ... '''
-        >>> ReservationsPageParser(html_string).parse() # doctest: +NORMALIZE_WHITESPACE
+        >>> ReservationsPageParser().parse(html_string) # doctest: +NORMALIZE_WHITESPACE
         [Reservation(title='Vastberaden!', type='', url='https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C12345',
             author='John Doe', location='MyCity', available=False, available_till=None,
             request_on=datetime.date(2023, 11, 25), valid_till=datetime.date(2024, 11, 24))]
         """
         holds = []
-        soup = BeautifulSoup(self._html, "html.parser")
+        soup = BeautifulSoup(html, "html.parser")
 
         holds_section_div = soup.find(
             "div", class_="my-library-user-library-account-holds__hold-wrapper"

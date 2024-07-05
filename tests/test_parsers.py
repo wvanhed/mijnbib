@@ -28,8 +28,8 @@ class TestLoansListPageParser:
 class TestReservationsPageParser:
     def test_parse_account_reservations_page(self):
         # Happy flow test --> see doctest
-        assert ReservationsPageParser("").parse() == []
-        assert ReservationsPageParser("bogus").parse() == []
+        assert ReservationsPageParser().parse("") == []
+        assert ReservationsPageParser().parse("bogus") == []
 
 
 class TestExtendResponsePageParser:
