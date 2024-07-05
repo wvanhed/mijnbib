@@ -1,28 +1,28 @@
 all: clean lint formatcheck test build
 
-test:
-	pytest -v
-	python -m doctest src/mijnbib/mijnbibliotheek.py
-	python -m doctest src/mijnbib/parsers.py
-	python -m doctest src/mijnbib/models.py
+clean:
+	rm -rf dist
+	rm -rf src/*.egg-info
+
+lint:
+	ruff check .
 
 black: format # legacy alias
 format:
 	ruff check --select I . --fix 
 	ruff format .
 
-lint:
-	ruff check .
-
 # For CI/CD pipeline
 formatcheck:
 	ruff check --select I .
 	ruff format --check .
 
-clean:
-	rm -rf dist
-	rm -rf src/*.egg-info
-	
+test:
+	pytest -v
+	python -m doctest src/mijnbib/mijnbibliotheek.py
+	python -m doctest src/mijnbib/parsers.py
+	python -m doctest src/mijnbib/models.py
+
 build:
 	pip install --upgrade pip
 	pip install --upgrade build
