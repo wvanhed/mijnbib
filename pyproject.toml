@@ -36,17 +36,18 @@ src = ["src"]    # consider folder as first-party import
 
 [tool.ruff.lint]
 extend-select = [
-    "B",    # flake8-bugbear
-    "D212", # docstring first line should end with period
-    "D415", # multiline docstring should start at first line
-    "FA",   # forgotten future annotations
-    "I",    # isort
-    "N",    # pep8 naming
-    "PTH",  # pathlib (instead of os.path)
-    "S",    # bandit, security checks
-    "SIM",  # flake8-simplify, for simplified code
-    "T2",   # flake8-print (avoiding prints)
-    "W",    # warning
+    "B",      # flake8-bugbear
+    "D212",   # docstring first line should end with period
+    "D415",   # multiline docstring should start at first line
+    "FA",     # forgotten future annotations
+    "I",      # isort
+    "INP001", # missing __init__.py files
+    "N",      # pep8 naming
+    "PTH",    # pathlib (instead of os.path)
+    "S",      # bandit, security checks
+    "SIM",    # flake8-simplify, for simplified code
+    "T2",     # flake8-print (avoiding prints)
+    "W",      # warning
 ]
 ignore = [
     "N818",   # error suffix in exception names

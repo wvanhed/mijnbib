@@ -1,3 +1,4 @@
+# ruff: noqa: INP001  # this file is not part of package
 import logging
 import pprint
 from dataclasses import asdict
