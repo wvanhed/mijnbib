@@ -2,6 +2,12 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.7.0 - 2025-01-25
+
+- impr: [breaking] re-add support for optional city parameter;
+        when used might return extra loan extension information
+- fix: IncompatibleSourceError on changed user interface for extending loan
+
 ## v0.6.0 - 2024-07-05
 
 - impr: [breaking] remove support for city parameter
