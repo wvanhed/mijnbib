@@ -193,11 +193,14 @@ class LoansListPageParser(Parser):
                 loan["extendable"] = False
             else:
                 loan["extendable"] = True
-                extend_url = extend_loan_div.a["href"]  # type:ignore
+                # Following line assumes "Verleng" button is present
+                extend_url = extend_loan_div.a.get("href")  # type:ignore
                 extend_url = urllib.parse.urljoin(base_url, extend_url)  # type:ignore
                 loan["extend_url"] = extend_url
-                loan["extend_id"] = extend_loan_div.input.get("id")
-        except AttributeError:
+                # loan["extend_id"] = extend_loan_div.input.get("id")
+                loan["extend_id"] = extend_url.split("loan-ids=")[1]
+        except (AttributeError, IndexError):
+            # Note: IndexError is for extend_id handling
             loan["extendable"] = None
             loan["extend_url"] = ""
             loan["extend_id"] = ""
