@@ -57,11 +57,11 @@ class TestLoginByOption:
         assert mb._login_handler_class == LoginByForm
 
     def test_login_by_options_by_form(self):
-        mb = MijnBibliotheek("user", "pwd", "form")
+        mb = MijnBibliotheek("user", "pwd", login_by="form")
         assert mb._login_handler_class == LoginByForm
 
     def test_login_by_options_by_oauth(self):
-        mb = MijnBibliotheek("user", "pwd", "oauth")
+        mb = MijnBibliotheek("user", "pwd", login_by="oauth")
         assert mb._login_handler_class == LoginByOAuth
 
     def test_login_by_options_invalid_option_raises_error(self):
