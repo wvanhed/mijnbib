@@ -1,5 +1,6 @@
 import datetime
 
+from mijnbib.models import Loan
 from mijnbib.parsers import (
     AccountsListPageParser,
     ExtendResponsePageParser,
@@ -23,6 +24,79 @@ class TestLoansListPageParser:
         # Happy flow test --> see doctest
         assert LoansListPageParser().parse(html="", base_url="", account_id="") == []
         assert LoansListPageParser().parse(html="bogus", base_url="", account_id="") == []
+
+    def test_parse_account_loans_new_extend_ui(self):
+        html_string = """
+            <div class="my-library-user-library-account-loans__loan-wrapper">
+              <h2>Gent Hoofdbibliotheek</h2>
+
+              <div class="card my-library-user-library-account-loans__loan my-library-user-library-account-loans__loan-type-">
+
+                <div class="my-library-user-library-account-loans__loan-content card--content">
+                  <div class="my-library-user-library-account-loans__loan-cover card--cover">
+                    <img class="my-library-user-library-account-loans__loan-cover-img card--cover-img"
+                      src="https://webservices.bibliotheek.be/index.php?func=cover&amp;ISBN=1234567890123&amp;VLACCnr=12345678&amp;CDR=&amp;EAN=&amp;ISMN=&amp;EBS=&amp;coversize=medium"
+                      alt="Een willekeurige boektitel" />
+                  </div>
+                  <div class="my-library-user-library-account-loans__loan-intro card--intro">
+                    <div
+                      class="my-library-user-library-account-loans__loan-type-label card--type-label atalog-item-icon catalog-item-icon--book">
+                      Boek</div>
+                    <h3 class="my-library-user-library-account-loans__loan-title card--title"><a
+                        href="https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C4690970">Een willekeurige boektitel</a></h3>
+                  </div>
+                </div>
+                <div class="my-library-user-library-account-loans__loan-footer card--footer">
+
+                  <div class="author">
+                    Doe, John
+                  </div>
+
+                  <div class="my-library-user-library-account-loans__loan-days card--days ">
+                    Nog 16 dagen
+                  </div>
+
+                  <div class="my-library-user-library-account-loans__loan-from-to card--from-to">
+                    <div>
+                      <span>Van</span>
+                      <span>15/01/2025</span>
+                    </div>
+                    <div>
+                      <span>Tot en met</span>
+                      <span>12/02/2025</span>
+                    </div>
+                  </div>
+
+                  <div class="my-library-user-library-account-loans__extend-loan card--extend-loan">
+                    <div>
+                      <input type="checkbox" id="abc123" value="abc123" data-renew-loan />
+                      <label for="abc123">Selecteer om te verlengen</label>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+        """
+        assert LoansListPageParser().parse(
+            html=html_string, base_url="https://city.bibliotheek.be", account_id="account123"
+        ) == [
+            Loan(
+                title="Een willekeurige boektitel",
+                loan_from=datetime.date(2025, 1, 15),
+                loan_till=datetime.date(2025, 2, 12),
+                author="Doe, John",
+                type="Boek",
+                extendable=True,
+                extend_url="https://city.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/account123/uitleningen/verlengen?loan-ids=abc123",
+                extend_id="abc123",
+                branchname="Gent Hoofdbibliotheek",
+                id="4690970",
+                url="https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C4690970",
+                cover_url="https://webservices.bibliotheek.be/index.php?func=cover&ISBN=1234567890123&VLACCnr=12345678&CDR=&EAN=&ISMN=&EBS=&coversize=medium",
+                account_id="account123",
+            )
+        ]
 
 
 class TestReservationsPageParser:

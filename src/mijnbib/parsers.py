@@ -76,7 +76,7 @@ class LoansListPageParser(Parser):
         ...         <input type="checkbox" id="6207416" value="6207416" data-renew-loan="">
         ...         <label for="6207416">Selecteren</label>
         ...         </div>
-        ...         <a href="/mijn-bibliotheek/lidmaatschappen/374052/uitleningen/verlengen?loan-ids=6207416">Verleng</a>
+        ...         <a href="/mijn-bibliotheek/lidmaatschappen/123456/uitleningen/verlengen?loan-ids=6207416">Verleng</a>
         ...     </div>
         ...     </div>
         ... </div>
@@ -85,7 +85,7 @@ class LoansListPageParser(Parser):
         >>> LoansListPageParser().parse(html_string,"https://city.bibliotheek.be","123456") # doctest: +NORMALIZE_WHITESPACE
         [Loan(title='Erebus', loan_from=datetime.date(2023, 11, 25), loan_till=datetime.date(2023, 12, 23),
             author='Palin, Michael', type='Boek', extendable=True,
-            extend_url='https://city.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/374052/uitleningen/verlengen?loan-ids=6207416',
+            extend_url='https://city.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/uitleningen/verlengen?loan-ids=6207416',
             extend_id='6207416', branchname='Gent Hoofdbibiliotheek', id='1324927',
             url='https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1324927',
             cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
@@ -191,16 +191,27 @@ class LoansListPageParser(Parser):
             extend_loan_div = loan_div.find("div", class_="card--extend-loan")
             if extend_loan_div.get_text().strip() == "Verlengen niet mogelijk":
                 loan["extendable"] = False
-            else:
+            elif extend_loan_div and extend_loan_div.find("a"):
+                # Case 1: UI where "Verleng" button is present
                 loan["extendable"] = True
-                # Following line assumes "Verleng" button is present
                 extend_url = extend_loan_div.a.get("href")  # type:ignore
                 extend_url = urllib.parse.urljoin(base_url, extend_url)  # type:ignore
                 loan["extend_url"] = extend_url
                 # loan["extend_id"] = extend_loan_div.input.get("id")
                 loan["extend_id"] = extend_url.split("loan-ids=")[1]
+            else:
+                # Case 2: UI where "Verleng" button is NOT present
+                loan["extendable"] = True
+                extend_id = extend_loan_div.input.get("id")
+                extend_url = (
+                    f"/mijn-bibliotheek/lidmaatschappen/{acc_id}/uitleningen/verlengen"
+                    + f"?loan-ids={extend_id}"
+                )
+                extend_url = urllib.parse.urljoin(base_url, extend_url)
+                loan["extend_url"] = extend_url
+                loan["extend_id"] = extend_id
         except (AttributeError, IndexError):
-            # Note: IndexError is for extend_id handling
+            # Note: IndexError is for extend_id handling from case 1
             loan["extendable"] = None
             loan["extend_url"] = ""
             loan["extend_id"] = ""
