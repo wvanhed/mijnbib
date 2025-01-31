@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.7.2 - 2025-01-31
+
+- fix: remove pip dependency added to v0.7.1
+
 ## v0.7.1 - 2025-01-31
 
 - fix: support both old and new extend loan UI, to return extend loan info
