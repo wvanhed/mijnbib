@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.7.1 - 2025-01-31
+
+- fix: support both old and new extend loan UI, to return extend loan info
+
 ## v0.7.0 - 2025-01-25
 
 - impr: [breaking] re-add support for optional city parameter;
