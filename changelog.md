@@ -2,9 +2,14 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## WIP
+
+- impr: register mijnbib as a cli script upon install
+- impr: add --version keyword argument to mijnbib script
+
 ## v0.7.2 - 2025-01-31
 
-- fix: remove pip dependency added to v0.7.1
+- fix: remove pip dependency added to v0.7.1 package on pypi.org
 
 ## v0.7.1 - 2025-01-31
 

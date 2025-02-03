@@ -12,7 +12,7 @@ import logging
 import pprint as pp
 import sys
 
-from mijnbib import AuthenticationError, MijnBibliotheek
+from mijnbib import AuthenticationError, MijnBibliotheek, __version__
 
 CONFIG_FILE = "mijnbib.ini"
 
@@ -91,7 +91,13 @@ def main():
             "   accountid = 456"
         ),
     )
-    parser.add_argument("-v", "--verbose", action="store_true", help="Show debug logging")
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version="%(prog)s {version}".format(version=__version__),
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="show debug logging")
     subparsers = parser.add_subparsers(required=True)
     parser_all = subparsers.add_parser(
         "all", parents=[common_parser], help="retrieve all information for all accounts"

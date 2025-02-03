@@ -25,6 +25,10 @@ dev = ["ruff >=0.4", "pytest"]
 Homepage = "https://github.com/wvanhed/mijnbib"
 Changelog = "https://github.com/wvanhed/mijnbib/blob/main/changelog.md"
 
+[project.scripts]
+mijnbib = "mijnbib.__main__:main"
+
+
 [tool.pytest.ini_options]
 minversion = "7.0"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]

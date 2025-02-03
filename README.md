@@ -52,10 +52,17 @@ Voor een meer leesbare versie, gebruik `pprint()`:
 Voor meer voorbeelden, zie de code in de folder `examples`.
 Daarin wordt ook `asdict` gebruikt voor conversie naar een dictionary.
 
-Tenslotte, via de commandline kan je de module ook als volgt aanroepen:
+## Command-line interface
+
+Via de command-line kan je de module als volgt aanroepen:
 
     python -m mijnbib loans
+    python -m mijnbib --version
     python -m mijnbib --help        # om alle opties te zien.
+
+Of, rechtstreeks via:
+
+    mijnbib loans
 
 ## Opmerkingen
 
