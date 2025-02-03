@@ -1,3 +1,7 @@
+import os
+import subprocess
+
+
 def test_mijnbib_available_imports():
     import mijnbib
 
@@ -26,3 +30,11 @@ def test_mijnbib_available_imports():
             "importlib",
         ]
     )
+
+
+def test_cli():
+    cproc = subprocess.run(["mijnbib", "--version"])  # noqa: S603, S607
+    assert cproc.returncode == 0
+
+    cproc = subprocess.run(["mijnbib", "--help"])  # noqa: S603, S607
+    assert cproc.returncode == 0
