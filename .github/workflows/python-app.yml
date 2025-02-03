@@ -5,19 +5,18 @@ name: Python application
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   schedule:
-      # periodically check if latest library versions don't cause issues
-      - cron: "10 06 */7 * *"
+    # periodically check if latest library versions don't cause issues
+    - cron: "10 06 */7 * *"
 
 permissions:
   contents: read
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -25,19 +24,23 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install app & dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .[dev] 
-    - name: Validate code formatted
-      run: |
-        make lint
-        make formatcheck
-    - name: Run tests
-      run: |
-        make test
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install app & dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .[dev]
+
+      - name: Validate code formatted
+        run: |
+          make lint
+          make formatcheck
+
+      - name: Run tests
+        run: |
+          make test
