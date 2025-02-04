@@ -6,6 +6,7 @@ new: new feature /  impr: improvement /  fix: bug fix
 
 - impr: register mijnbib as a cli script upon install
 - impr: add --version keyword argument to mijnbib script
+- impr: switch to uv as package manager
 
 ## v0.7.2 - 2025-01-31
 
