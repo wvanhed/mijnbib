@@ -1,5 +1,6 @@
 init:
 	uv sync
+	uv pip install -e .
 
 all: clean init lint formatcheck test build
 

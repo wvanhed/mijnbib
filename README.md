@@ -111,7 +111,7 @@ This project uses `uv`. If needed, install first via, e.g.
 
 To install all dependencies for development:
 
-    uv sync
+    make init
 
 If all is good, the following should print `mijnbib <version>`:
 
