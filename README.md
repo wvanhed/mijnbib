@@ -115,7 +115,11 @@ To install all dependencies for development:
 
 If all is good, the following should print `mijnbib <version>`:
 
-    mijnbib --version
+    uv run mijnbib --version
+
+Note: This works because mijnbib is installed as a cli script via the
+`project.scripts` entry in `pyproject.toml`, with `uv run` taking care of
+activating the virtual environment before running the command.
 
 You need `make` as well. For installation on Windows, see the options at
 <https://stackoverflow.com/a/32127632/50899>
