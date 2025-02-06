@@ -1,33 +1,36 @@
-all: clean lint formatcheck test build
+init:
+	uv sync
+
+all: clean init lint formatcheck test build
 
 clean:
 	rm -rf dist
 	rm -rf src/*.egg-info
+	rm -rf .venv
 
 lint:
-	ruff check .
+	uv run ruff check .
 
 black: format # legacy alias
 format:
-	ruff check --select I . --fix 
-	ruff format .
+	uv run ruff check --select I . --fix 
+	uv run ruff format .
 
 # For CI/CD pipeline
 formatcheck:
-	ruff check --select I .
-	ruff format --check .
+	uv run ruff check --select I .
+	uv run ruff format --check .
 
 test:
-	pytest -v
-	python -m doctest src/mijnbib/mijnbibliotheek.py
-	python -m doctest src/mijnbib/parsers.py
-	python -m doctest src/mijnbib/models.py
+	uv run pytest -v
+	uv run python -m doctest src/mijnbib/mijnbibliotheek.py
+	uv run python -m doctest src/mijnbib/parsers.py
+	uv run python -m doctest src/mijnbib/models.py
 
 build:
-	pip install --upgrade pip
-	pip install --upgrade build
-	python -m build
+	uv build
 
+# (uv publish is still experimental, so we still use twine)
 publish:
-	python3 -m pip install --upgrade twine
-	twine upload dist/*
+	# uv run --with twine --with setuptools --no-project twine upload --repository testpypi dist/*
+	uv run --with twine --with setuptools --no-project twine upload dist/*

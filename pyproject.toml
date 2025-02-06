@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mijnbib"
-version = "0.7.2"
+version = "0.7.3"
 description = "Python API voor de website mijn.bibliotheek.be"
 readme = "README.md"
 authors = [{ name = "Ward Van Heddeghem", email = "wardvh@fastmail.fm" }]
@@ -18,7 +18,10 @@ keywords = ["mijn bibliotheek", "bibliotheek"]
 dependencies = ["mechanize", "bs4", "requests"]
 requires-python = ">=3.8"
 
-[project.optional-dependencies]
+# [project.optional-dependencies]
+# dev = ["ruff >=0.4", "pytest"]
+
+[dependency-groups]
 dev = ["ruff >=0.4", "pytest"]
 
 [project.urls]

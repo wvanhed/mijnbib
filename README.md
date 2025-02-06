@@ -105,18 +105,29 @@ op een gelijkaardige manier de bibliotheek.be website.
 
 ## Development
 
-To install all dependencies for development, install (in a virtualenv) via:
+This project uses `uv`. If needed, install first via, e.g.
 
-    python3 -m venv venv3x
-    . venv3x/bin/activate
-    pip install -e .[dev]      # 'dev' is defined in pyproject.toml
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+To install all dependencies for development:
+
+    make init
+
+If all is good, the following should print `mijnbib <version>`:
+
+    uv run mijnbib --version
+
+Note: This works because mijnbib is installed as a cli script via the
+`project.scripts` entry in `pyproject.toml`, with `uv run` taking care of
+activating the virtual environment before running the command.
 
 You need `make` as well. For installation on Windows, see the options at
 <https://stackoverflow.com/a/32127632/50899>
 
-Running the tests and applying code formatting can be done via:
+Running the tests, applying linting and code formatting can be done via:
 
     make test
+    make lint
     make format
 
 To work around the challenge of testing a web scraper, the following *snapshot
