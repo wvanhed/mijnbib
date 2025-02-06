@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## WIP
+## v0.7.3 - 2025-02-06
 
 - impr: register mijnbib as a cli script upon install
 - impr: add --version keyword argument to mijnbib script
