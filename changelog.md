@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.7.4 - 2025-04-27
+
+- fix: reservations (holds) have a new html layout, title and url was broken
+
 ## v0.7.3 - 2025-02-06
 
 - impr: register mijnbib as a cli script upon install
