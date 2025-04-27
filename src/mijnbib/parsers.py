@@ -411,19 +411,19 @@ class ReservationsPageParser(Parser):
         ...       <p> Aanvraag geldig tot 24/11/2024</p>
         ...     </div>
         ...     <div class="my-library-user-library-account-holds__hold-second card--second-section">
-        ...       <div class="catalog-item catalog-item--view-mode-small-teaser">
-        ...         <div class="catalog-item__image">
+        ...       <div class="catalog-item-small-teaser">
+        ...         <div class="catalog-item-small-teaser__image">
         ...           <a href="https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C12345"
-        ...             target="_blank"><img
+        ...             target="_blank" title="Vastberaden!"><img
         ...               src="https://city.bibliotheek.be/themes/custom/library_portal_theme/assets/img/placeholder_book.png"
         ...               alt="Vastberaden!"></a>
         ...         </div>
-        ...         <div class="catalog-item__content">
-        ...           <h2 class="catalog-item__title">
+        ...          <div class="catalog-item-small-teaser__content">
+        ...           <h2 class="catalog-item-small-teaser__title">
         ...             <a href="https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C12345"
         ...               target="_blank">Vastberaden!</a>
         ...           </h2>
-        ...           <div class="catalog-item__authors">
+        ...           <div class="catalog-item-small-teaser__authors">
         ...             John Doe
         ...           </div>
         ...         </div>
@@ -461,7 +461,7 @@ class ReservationsPageParser(Parser):
 
             try:
                 hold["type"] = (
-                    child.find("div", class_="catalog-item__content")
+                    child.find("div", class_="catalog-item-small-teaser__content")
                     .find("span")
                     .get_text()
                     .strip()
@@ -492,7 +492,7 @@ class ReservationsPageParser(Parser):
                 pass  # once available, date not present anymore
 
             try:
-                hold_a = child.find("h2", class_="catalog-item__title").a
+                hold_a = child.find("h2", class_="catalog-item-small-teaser__title").a
                 hold["title"] = hold_a.get_text().strip()
                 hold["url"] = hold_a["href"]
             except AttributeError:
@@ -500,7 +500,9 @@ class ReservationsPageParser(Parser):
 
             try:
                 hold["author"] = (
-                    child.find("div", class_="catalog-item__authors").get_text().strip()
+                    child.find("div", class_="catalog-item-small-teaser__authors")
+                    .get_text()
+                    .strip()
                 )
             except AttributeError:
                 pass  # likely, not all items have an author
