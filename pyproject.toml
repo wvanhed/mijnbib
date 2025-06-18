@@ -51,6 +51,7 @@ extend-select = [
     "INP001", # missing __init__.py files
     "N",      # pep8 naming
     "PTH",    # pathlib (instead of os.path)
+    "RUF",    # ruff specific rules
     "S",      # bandit, security checks
     "SIM",    # flake8-simplify, for simplified code
     "T2",     # flake8-print (avoiding prints)

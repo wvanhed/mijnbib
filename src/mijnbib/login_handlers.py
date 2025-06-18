@@ -64,7 +64,7 @@ class LoginByForm(LoginHandler):
             # We specifically catch this because site periodically (maintenance?)
             # throws a 500, 502 or 504
             raise CanNotConnectError(
-                f"Error while trying to log in at: {self._url}  ({str(e)})", self._url
+                f"Error while trying to log in at: {self._url}  ({e!s})", self._url
             ) from e
         return response
 

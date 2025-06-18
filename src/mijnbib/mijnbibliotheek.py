@@ -122,7 +122,7 @@ class MijnBibliotheek:
             raise e
         except Exception as e:
             raise IncompatibleSourceError(
-                f"Problem scraping loans ({str(e)})", html_body=""
+                f"Problem scraping loans ({e!s})", html_body=""
             ) from e
         return loans
 
@@ -144,7 +144,7 @@ class MijnBibliotheek:
             holds = self._reservations_parser.parse(html_string)
         except Exception as e:
             raise IncompatibleSourceError(
-                f"Problem scraping reservations ({str(e)})", html_body=""
+                f"Problem scraping reservations ({e!s})", html_body=""
             ) from e
         return holds
 
@@ -167,7 +167,7 @@ class MijnBibliotheek:
             accounts = self._accounts_page_parser.parse(html_string, self.BASE_URL)
         except Exception as e:
             raise IncompatibleSourceError(
-                f"Problem scraping accounts ({str(e)})", html_body=""
+                f"Problem scraping accounts ({e!s})", html_body=""
             ) from e
         return accounts
 
