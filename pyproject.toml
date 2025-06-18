@@ -59,6 +59,7 @@ extend-select = [
 ]
 ignore = [
     "N818",   # error suffix in exception names
+    "RUF100", # unused noqa directive
     "SIM105", # suppressible-exception (contextlib usage)
     "SIM910", # dict-get-with-none-default
 ]
