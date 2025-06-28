@@ -8,6 +8,7 @@ in the MijnBibliotheek class and its public methods.
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import asdict
 
@@ -24,7 +25,7 @@ from mijnbib.errors import (
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
 from mijnbib.models import Account, Loan, Reservation
 from mijnbib.parsers import (
-    AccountsListPageParser,
+    AmountListPageParser,
     ExtendResponsePageParser,
     LoansListPageParser,
     ReservationsPageParser,
@@ -72,8 +73,8 @@ class MijnBibliotheek:
 
         # Open the door for overriding parsers (but still keep private for now)
         self._loans_page_parser = LoansListPageParser()
-        self._accounts_page_parser = AccountsListPageParser()
         self._reservations_parser = ReservationsPageParser()
+        self._amounts_page_parser = AmountListPageParser()
         self._extend_response_page_parser = ExtendResponsePageParser()
 
     # *** PUBLIC METHODS ***
@@ -126,6 +127,31 @@ class MijnBibliotheek:
             ) from e
         return loans
 
+    def get_amounts(self, account_id: str) -> list[Loan]:
+        """Return list of amounts. Will login first if needed.
+
+        Raises:
+            AuthenticationError
+            IncompatibleSourceError
+            ItemAccessError: something went wrong fetching amonts
+            TemporarySiteError
+        """
+        _log.info(f"Retrieving amounts for account: '{account_id}'")
+        if not self._logged_in:
+            self.login()
+
+        url = self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/te-betalen"
+        html_string = self._open_account_amounts_page(url)
+        try:
+            amounts = self._amounts_page_parser.parse(html_string, self.BASE_URL, account_id)
+        except TemporarySiteError as e:
+            raise e
+        except Exception as e:
+            raise IncompatibleSourceError(
+                f"Problem scraping amounts ({e!s})", html_body=""
+            ) from e
+        return amounts
+
     def get_reservations(self, account_id: str) -> list[Reservation]:
         """Return list of reservations. Will login first if needed.
 
@@ -156,15 +182,30 @@ class MijnBibliotheek:
             IncompatibleSourceError
         """
         _log.info("Retrieving accounts")
-        if not self._logged_in:
-            self.login()
-
-        url = self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen"
-        _log.debug(f"Opening page '{url}' ... ")
-        response = self._br.open(url, timeout=TIMEOUT)  # pylint: disable=assignment-from-none
-        html_string = response.read().decode("utf-8")  # type:ignore
         try:
-            accounts = self._accounts_page_parser.parse(html_string, self.BASE_URL)
+            if not self._logged_in:
+                self.login()
+
+            url = self.BASE_URL + "/api/my-library/memberships"
+            response = self._br.open(url, timeout=TIMEOUT)  # pylint: disable=assignment-from-none
+            accounts_json = json.loads(response.read().decode("utf-8"))  # type:ignore
+            accounts = []
+            for bib_key, bib in accounts_json.items():
+                #_log.debug("bib: %s", bib)
+                for member in bib:
+                    #_log.debug("member: %s", member)
+                    account = Account(
+                        id=member["id"],
+                        library_name=member["libraryName"],
+                        user=member["name"],
+                        loans_count=len(self.get_loans(member["id"])),
+                        loans_url=self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen" + member["id"] +"/uitleningen",
+                        reservations_count=len(self.get_reservations(member["id"])),
+                        reservations_url=self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen" + member["id"] +"/reservaties",
+                        open_amounts=len(self.get_amounts(member["id"])),
+                        open_amounts_url=self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen" + member["id"] +"/te-betalen",
+                    )
+                    accounts.append(account)
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping accounts ({e!s})", html_body=""
@@ -329,6 +370,27 @@ class MijnBibliotheek:
                 ) from e
             raise ItemAccessError(
                 f"Loans url can not be opened. Reason unknown. Error: {e}"
+            ) from e
+
+        html = response.read().decode("utf-8") if response is not None else ""
+        return html
+
+    def _open_account_amounts_page(self, acc_url: str) -> str:
+        _log.debug(f"Opening page '{acc_url}' ... ")
+        try:
+            response = self._br.open(acc_url, timeout=TIMEOUT)
+        except mechanize.HTTPError as e:
+            if e.code == 404:
+                raise ItemAccessError(
+                    "Amounts url can not be opened (404 reponse). Likely incorrect or "
+                    f"nonexisting account ID in the url '{acc_url}'"
+                ) from e
+            if e.code == 500:
+                raise TemporarySiteError(
+                    f"Amounts url can not be opened (500 response), url '{acc_url}'"
+                ) from e
+            raise ItemAccessError(
+                f"Amounts url can not be opened. Reason unknown. Error: {e}"
             ) from e
 
         html = response.read().decode("utf-8") if response is not None else ""

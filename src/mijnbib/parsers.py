@@ -133,6 +133,108 @@ class LoansListPageParser(Parser):
         _log.debug("Number of loans found: %s", len(loans))
         return loans
 
+class LoansListPageParser(Parser):
+    def parse(self, html: str, base_url: str, account_id: str) -> list[Loan]:
+        """Return loans.
+
+        >>> html_string='''
+        ... <div class="my-library-user-library-account-loans__loan-wrapper">
+        ... <h2>Gent Hoofdbibiliotheek</h2>
+        ...
+        ... <div class="card my-library-user-library-account-loans__loan my-library-user-library-account-loans__loan-type-">
+        ...     <div class="my-library-user-library-account-loans__loan-content card--content">
+        ...     <div class="my-library-user-library-account-loans__loan-cover card--cover">
+        ...         <img class="my-library-user-library-account-loans__loan-cover-img card--cover-img"
+        ...         src="https://webservices.bibliotheek.be/index.php?func=cover&amp;ISBN=9789000359325&amp;VLACCnr=10157217&amp;CDR=&amp;EAN=&amp;ISMN=&amp;EBS=&amp;coversize=medium"
+        ...         alt="Erebus">
+        ...     </div>
+        ...     <div class="my-library-user-library-account-loans__loan-intro card--intro">
+        ...         <div
+        ...         class="my-library-user-library-account-loans__loan-type-label card--type-label atalog-item-icon catalog-item-icon--book">
+        ...         Boek</div>
+        ...         <h3 class="my-library-user-library-account-loans__loan-title card--title"><a
+        ...             href="https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1324927">Erebus</a></h3>
+        ...     </div>
+        ...     </div>
+        ...     <div class="my-library-user-library-account-loans__loan-footer card--footer">
+        ...     <div class="author">
+        ...         Palin, Michael
+        ...     </div>
+        ...     <div class="my-library-user-library-account-loans__loan-days card--days ">
+        ...         Nog 23 dagen
+        ...     </div>
+        ...     <div class="my-library-user-library-account-loans__loan-from-to card--from-to">
+        ...         <div>
+        ...         <span>Van</span>
+        ...         <span>25/11/2023</span>
+        ...         </div>
+        ...         <div>
+        ...         <span>Tot en met</span>
+        ...         <span>23/12/2023</span>
+        ...         </div>
+        ...     </div>
+        ...     <div class="my-library-user-library-account-loans__extend-loan card--extend-loan">
+        ...         <div>
+        ...         <input type="checkbox" id="6207416" value="6207416" data-renew-loan="">
+        ...         <label for="6207416">Selecteren</label>
+        ...         </div>
+        ...         <a href="/mijn-bibliotheek/lidmaatschappen/123456/uitleningen/verlengen?loan-ids=6207416">Verleng</a>
+        ...     </div>
+        ...     </div>
+        ... </div>
+        ... </div>
+        ... '''
+        >>> LoansListPageParser().parse(html_string,"https://city.bibliotheek.be","123456") # doctest: +NORMALIZE_WHITESPACE
+        [Loan(title='Erebus', loan_from=datetime.date(2023, 11, 25), loan_till=datetime.date(2023, 12, 23),
+            author='Palin, Michael', type='Boek', extendable=True,
+            extend_url='https://city.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/uitleningen/verlengen?loan-ids=6207416',
+            extend_id='6207416', branchname='Gent Hoofdbibiliotheek', id='1324927',
+            url='https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1324927',
+            cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
+            account_id='123456')]
+        """
+
+        loans = []
+        soup = BeautifulSoup(html, "html.parser")
+
+        loansection_div = soup.find(
+            "div", class_="my-library-user-library-account-loans__loan-wrapper"
+        )
+        if not loansection_div:
+            error_msg = (
+                "Er is een fout opgetreden bij het ophalen van informatie uit het "
+                "bibliotheeksysteem. Probeer het later opnieuw."
+            )
+            # Sometimes, this error is present
+            if soup.find(string=re.compile(error_msg)) is not None:
+                raise TemporarySiteError(
+                    f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
+                )
+                # _log.warning(
+                #     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
+                # )
+            return loans
+
+        # Unfortunately, the branch names are interwoven siblings of the loans,
+        # so we have to parse all items as we go along, and track branch name
+        children = loansection_div.find_all(recursive=False)  # type:ignore
+        branch_name = "??"
+        for child in children:
+            if child.name == "h2":  # we expect this to be the first child
+                branch_name = child.get_text().strip()
+            elif child.name == "div":  # loan div
+                # we convert child soup object to string, so called function
+                # can be used also easily for unit tests
+                loan = self._get_loan_info_from_div(
+                    str(child), base_url, branch_name, account_id
+                )
+                loans.append(loan)
+            else:
+                # should not happen, fail gracefully for now.
+                _log.warning("Unexpected html structure. Did not find loan nor branch.")
+        _log.debug("Number of loans found: %s", len(loans))
+        return loans
+
     def _get_loan_info_from_div(
         self, loan_div_html: str, base_url: str, branch: str, acc_id: str
     ) -> Loan:
@@ -234,170 +336,137 @@ class LoansListPageParser(Parser):
             account_id=acc_id,
         )
 
-
-class AccountsListPageParser(Parser):
-    def parse(self, html: str, base_url: str) -> list[Account]:
-        """Return list of accounts.
-
-        >>> html_string = '''
-        ... ...
-        ... <div class="my-library-user-library-account-list js-accordion">
-        ...     <div class="my-library-user-library-account-list__library">
-        ...        <h2 class="my-library-user-library-account-list__title ui-accordion-header">
-        ...            <div class="my-library-user-library-account-list__title-content">
-        ...                Dijk92
-        ...                 <span class="region-info">...</span>
-        ...            </div>
-        ...        </h2>
-        ...        <div class="my-library-user-library-account-list__account">
-        ...            <div class="my-library-user-library-account-list__basic-info">
-        ...                <a href="/mijn-bibliotheek/lidmaatschappen/374047">
-        ...                    <div class="my-library-user-library-account-list__name" data-hj-suppress="">Johny</div>
-        ...                    <div class="my-library-user-library-account-list__city" data-hj-suppress=""></div>
-        ...                </a>
-        ...            </div>
-        ...            <ul class="my-library-user-library-account-list__info">
-        ...                ...
-        ...                <li class="my-library-user-library-account-list__loans-link">
-        ...                    <a href="/mijn-bibliotheek/lidmaatschappen/374047/uitleningen">Geen uitleningen</a></li>
-        ...                <li class="my-library-user-library-account-list__holds-link">
-        ...                    <a href="/mijn-bibliotheek/lidmaatschappen/384767/reservaties">5 reserveringen</a></li>
-        ...                ...
-        ...            </ul>
-        ...            ...
-        ...        </div>
-        ...     </div>
-        ... </div>
-        ... ...
-        ... '''
-        >>> AccountsListPageParser().parse(html_string,"https://example.com") # doctest: +NORMALIZE_WHITESPACE
-        [Account(library_name='Dijk92', user='Johny', id='374047', loans_count=0, loans_url='https://example.com/mijn-bibliotheek/lidmaatschappen/374047/uitleningen',
-                 reservations_count=5, reservations_url='https://example.com/mijn-bibliotheek/lidmaatschappen/384767/reservaties',
-                 open_amounts=0, open_amounts_url='')]
+class AmountListPageParser(Parser):
+    def parse(self, html: str, base_url: str, account_id: str) -> list[Loan]:
+        """Return amounts.
         """
-        accounts = []
+
+        amounts = []
         soup = BeautifulSoup(html, "html.parser")
 
-        library_divs = soup.find_all(
-            "div", class_="my-library-user-library-account-list__library"
+        amountsection_div = soup.find(
+            "div", class_="my-library-user-library-account-open-amounts__open-amounts-wrapper"
         )
-        if not library_divs:
-            _log.warning("No library accounts detected. Weird; expected at least 1.")
-
-        for lib_div in library_divs:
-            lib_title = (
-                lib_div.find(
-                    "div", class_="my-library-user-library-account-list__title-content"
+        if not amountsection_div:
+            error_msg = (
+                "Er is een fout opgetreden bij het ophalen van informatie uit het "
+                "bibliotheeksysteem. Probeer het later opnieuw."
+            )
+            # Sometimes, this error is present
+            if soup.find(string=re.compile(error_msg)) is not None:
+                raise TemporarySiteError(
+                    f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
                 )
-                .find(string=True, recursive=False)
+                # _log.warning(
+                #     f"Loans or reservations can not be retrieved. Site reports: {error_msg}"
+                # )
+            return amounts
+
+        children = amountsection_div.find_all(recursive=False)  # type:ignore
+        ## TODO: structure is unknow
+        _log.debug("Number of amounts found: %s", len(amounts))
+        return amounts
+
+    def _get_loan_info_from_div(
+        self, loan_div_html: str, base_url: str, branch: str, acc_id: str
+    ) -> Loan:
+        """Return loan from html loan_div blob."""
+        loan_div = BeautifulSoup(loan_div_html, "html.parser")
+        loan = {}
+
+        try:
+            loan_a = loan_div.find(
+                "h3", class_="my-library-user-library-account-loans__loan-title card--title"
+            ).a
+            loan["title"] = loan_a.get_text().strip()
+            loan["url"] = loan_a["href"]
+            # Since id is only used to differentiate between titles, use last id-like part from url
+            # URL looks like 'https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1144255'
+            loan["id"] = loan_a["href"].encode("utf-8").split(b"%7C")[-1].decode("utf-8")
+        except AttributeError:
+            _log.warning("Unexpected html structure. Ignoring loan title, url and id")
+
+        try:
+            loan["author"] = loan_div.find("div", class_="author").get_text().strip()
+        except AttributeError:
+            loan["author"] = ""  # Likely, not all loans have an author
+
+        try:
+            loan["type"] = (
+                loan_div.find(
+                    "div", class_="my-library-user-library-account-loans__loan-type-label"
+                )
                 .get_text()
                 .strip()
             )
+        except AttributeError:
+            loan["type"] = ""  # Not all loans have a type
 
-            # Get accounts
-            acc_divs = lib_div.find_all(
-                "div", class_="my-library-user-library-account-list__account"
-            )
-            for acc_div in acc_divs:
-                # Some details also available in this json blob; perhaps useful for later
-                # (credits to see https://github.com/myTselection/bibliotheek_be/blob/fec95c3481f78d98062c1117627da652ec8d032d/custom_components/bibliotheek_be/utils.py#L145C53-L145C75)
-                # {'id', 'libraryName', 'userName', 'email', 'alertEmailSync', 'barcode'}
-                # try:
-                #     details = acc_div.find(attrs={":default-active-account": True}).get(
-                #         ":default-active-account"
-                #     )
-                #     details = json.loads(details)
-                # except (AttributeError, json.JSONDecodeError):
-                #     details = {}
-
-                # Get id from <a href="/mijn-bibliotheek/lidmaatschappen/374047">
-                acc_id = acc_div.a["href"].strip().split("/")[3]
-
-                acc_user = (
-                    acc_div.find("div", class_="my-library-user-library-account-list__name")
-                    .get_text()
-                    .strip()
-                )
-
-                loans_count = self._parse_item_count_from_li(
-                    acc_div, "my-library-user-library-account-list__loans-link"
-                )
-
-                try:
-                    loans_url = base_url + acc_div.find(
-                        "a", href=re.compile("uitleningen")
-                    ).get("href")
-                except AttributeError:
-                    loans_url = ""
-
-                holds_count = self._parse_item_count_from_li(
-                    acc_div, "my-library-user-library-account-list__holds-link"
-                )
-
-                try:
-                    holds_url = base_url + acc_div.find(
-                        "a", href=re.compile("reservaties")
-                    ).get("href")
-                except AttributeError:
-                    holds_url = ""
-
-                try:
-                    open_amounts = acc_div.find(
-                        "li", class_="my-library-user-library-account-list__open-amount-link"
-                    ).a.get_text()
-                    if "geen" in open_amounts.lower():
-                        open_amounts = 0
-                    else:
-                        # Copied from https://github.com/myTselection/bibliotheek_be
-                        open_amounts = float(
-                            open_amounts.lower()
-                            .replace(" openstaande bedragen", "")
-                            .replace(" openstaand bedrag", "")
-                            .replace(" openstaande kosten", "")
-                            .replace("€", "")
-                            .replace(",", ".")
-                        )
-                except AttributeError:
-                    open_amounts = 0
-
-                try:
-                    open_amounts_url = base_url + acc_div.find(
-                        "a", href=re.compile("betalen")
-                    ).get("href")
-                except AttributeError:
-                    open_amounts_url = ""
-
-                account = Account(
-                    id=acc_id,
-                    library_name=lib_title,
-                    user=acc_user,
-                    loans_count=loans_count,
-                    loans_url=loans_url,
-                    reservations_count=holds_count,
-                    reservations_url=holds_url,
-                    open_amounts=open_amounts,
-                    open_amounts_url=open_amounts_url,
-                )
-                accounts.append(account)
-        _log.debug("Number of accounts found: %s", len(accounts))
-        return accounts
-
-    @staticmethod
-    def _parse_item_count_from_li(acc_div, class_: str) -> int | None:
-        """Return None if no info found, otherwise return item count (potentially 0)."""
-        item_count = None
         try:
-            acc_a_text = acc_div.find("li", class_=class_).a.get_text().strip()
-            if "Geen" in acc_a_text:  # 'Geen uitleningen' or 'Geen reservaties'
-                item_count = 0
-            else:
-                numbers = [int(s) for s in acc_a_text.split() if s.isdigit()]
-                if numbers:
-                    item_count = numbers[0]
-        except Exception:
-            _log.warning("Unexpected html structure. Ignore item count")
-        return item_count
+            loan["cover_url"] = loan_div.find(
+                "img", class_="my-library-user-library-account-loans__loan-cover-img"
+            )["src"]
+        except AttributeError:
+            loan["cover_url"] = ""
 
+        try:
+            fromto_div = loan_div.find(
+                "div",
+                class_="my-library-user-library-account-loans__loan-from-to",
+            )
+            from_ = fromto_div.find_all("span")[1].get_text().strip()  # type:ignore
+            to_ = fromto_div.find_all("span")[3].get_text().strip()  # type:ignore
+            loan["loan_from"] = datetime.strptime(from_, DATE_FORMAT).date()
+            loan["loan_till"] = datetime.strptime(to_, DATE_FORMAT).date()
+        except AttributeError:
+            _log.warning("Unexpected html structure. Ignoring loan start and end date")
+
+        try:
+            extend_loan_div = loan_div.find("div", class_="card--extend-loan")
+            if extend_loan_div.get_text().strip() == "Verlengen niet mogelijk":
+                loan["extendable"] = False
+            elif extend_loan_div and extend_loan_div.find("a"):
+                # Case 1: UI where "Verleng" button is present
+                loan["extendable"] = True
+                extend_url = extend_loan_div.a.get("href")  # type:ignore
+                extend_url = urllib.parse.urljoin(base_url, extend_url)  # type:ignore
+                loan["extend_url"] = extend_url
+                # loan["extend_id"] = extend_loan_div.input.get("id")
+                loan["extend_id"] = extend_url.split("loan-ids=")[1]
+            else:
+                # Case 2: UI where "Verleng" button is NOT present
+                loan["extendable"] = True
+                extend_id = extend_loan_div.input.get("id")
+                extend_url = (
+                    f"/mijn-bibliotheek/lidmaatschappen/{acc_id}/uitleningen/verlengen"
+                    + f"?loan-ids={extend_id}"
+                )
+                extend_url = urllib.parse.urljoin(base_url, extend_url)
+                loan["extend_url"] = extend_url
+                loan["extend_id"] = extend_id
+        except (AttributeError, IndexError):
+            # Note: IndexError is for extend_id handling from case 1
+            loan["extendable"] = None
+            loan["extend_url"] = ""
+            loan["extend_id"] = ""
+
+        loan["branchname"] = branch
+
+        return Loan(
+            title=loan.get("title", ""),
+            loan_from=loan.get("loan_from", None),
+            loan_till=loan.get("loan_till", None),
+            author=loan.get("author", ""),
+            type=loan.get("type", ""),
+            extendable=loan.get("extendable", None),
+            extend_url=loan.get("extend_url", ""),
+            extend_id=loan.get("extend_id", ""),
+            branchname=loan.get("branchname", ""),
+            id=loan.get("id", ""),
+            url=loan.get("url", ""),
+            cover_url=loan.get("cover_url", ""),
+            account_id=acc_id,
+        )
 
 class ReservationsPageParser(Parser):
     def parse(self, html: str) -> list[Reservation]:
