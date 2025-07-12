@@ -8,6 +8,7 @@ in the MijnBibliotheek class and its public methods.
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import asdict
 
@@ -24,7 +25,6 @@ from mijnbib.errors import (
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
 from mijnbib.models import Account, Loan, Reservation
 from mijnbib.parsers import (
-    AccountsListPageParser,
     ExtendResponsePageParser,
     LoansListPageParser,
     ReservationsPageParser,
@@ -72,7 +72,6 @@ class MijnBibliotheek:
 
         # Open the door for overriding parsers (but still keep private for now)
         self._loans_page_parser = LoansListPageParser()
-        self._accounts_page_parser = AccountsListPageParser()
         self._reservations_parser = ReservationsPageParser()
         self._extend_response_page_parser = ExtendResponsePageParser()
 
@@ -151,6 +150,9 @@ class MijnBibliotheek:
     def get_accounts(self) -> list[Account]:
         """Return list of accounts. Will login first if needed.
 
+        Each account also contains some data about current number of loans,
+        reservations and open amount.
+
         Raises:
             AuthenticationError
             IncompatibleSourceError
@@ -159,16 +161,54 @@ class MijnBibliotheek:
         if not self._logged_in:
             self.login()
 
-        url = self.BASE_URL + "/mijn-bibliotheek/lidmaatschappen"
-        _log.debug(f"Opening page '{url}' ... ")
-        response = self._br.open(url, timeout=TIMEOUT)  # pylint: disable=assignment-from-none
-        html_string = response.read().decode("utf-8")  # type:ignore
-        try:
-            accounts = self._accounts_page_parser.parse(html_string, self.BASE_URL)
-        except Exception as e:
-            raise IncompatibleSourceError(
-                f"Problem scraping accounts ({e!s})", html_body=""
-            ) from e
+        # First fetch the accounts (= memberships) from the API
+        memberships_api_url = self.BASE_URL + "/api/my-library/memberships"
+        _log.debug(f"Fetching memberships data (json) from '{memberships_api_url}' ... ")
+        response = self._br.open(memberships_api_url, timeout=TIMEOUT)
+        memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+        memberships = []
+        for _library_name, membership_list in memberships_data.items():
+            for membership in membership_list:
+                memberships.append(membership)
+        _log.debug("Number of accounts found: %s", len(memberships))
+
+        # Then, fetch activity data for each membership, and create Account objects
+        accounts = []
+        for ms in memberships:
+            try:
+                activities_api_url = self.BASE_URL + f"/api/my-library/{ms['id']}/activities"
+                _log.debug(f"Fetching activity data (json) from '{activities_api_url}' ... ")
+                response = self._br.open(activities_api_url, timeout=TIMEOUT)
+                activity_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+
+                number_of_loans = activity_data.get("numberOfLoans", 0)
+                number_of_holds = activity_data.get("numberOfHolds", 0)
+                open_amount = float(activity_data.get("openAmount", "0,00").replace(",", "."))
+            except Exception as e:
+                raise IncompatibleSourceError(
+                    f"Failed to fetch activity data for account {ms['id']}: {e!s}",
+                    html_body="",
+                ) from e
+
+            acc = Account(
+                library_name=ms["libraryName"],  # e.g. "Dijk 92 - Bibliotheek Gent"
+                user=ms["name"],  # e.g. "John Doe"
+                id=ms["id"],  # e.g. "123456"
+                loans_count=number_of_loans,
+                reservations_count=number_of_holds,
+                open_amounts=open_amount,
+                loans_url=(
+                    self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/uitleningen"
+                ),
+                reservations_url=(
+                    self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/reservaties"
+                ),
+                open_amounts_url=(
+                    self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/te-betalen"
+                ),
+            )
+            accounts.append(acc)
+
         return accounts
 
     def get_all_info(self, all_as_dicts=False) -> dict:
