@@ -36,7 +36,7 @@ class Reservation:
 
 @dataclass
 class Account:
-    """An account represents a user linked to a library.
+    """An account represents a membership, i.e. a user linked to a library.
 
     Loans are always associated with a single account, via the account `id`.
 
@@ -46,9 +46,9 @@ class Account:
     to (e.g. children's accounts).
     """
 
-    library_name: str
-    user: str
-    id: str
+    library_name: str  # e.g. "Dijk 92 - Bibliotheek Gent"
+    user: str  # e.g. "John Doe"
+    id: str  # e.g. "123456"
     loans_count: int | None
     loans_url: str
     reservations_count: int | None
