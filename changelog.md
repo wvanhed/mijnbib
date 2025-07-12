@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.8.0 - 2025-07-12
+
+- fix: adapt to breaking changes in accounts page
+
 ## v0.7.4 - 2025-04-27
 
 - fix: reservations (holds) have a new html layout, title and url was broken
