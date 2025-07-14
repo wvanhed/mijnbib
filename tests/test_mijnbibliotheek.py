@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import configparser
 import io
 import logging
@@ -9,7 +11,7 @@ import pytest
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
-from mijnbib.models import Loan, Reservation
+from mijnbib.models import Account, Loan, Reservation
 
 CONFIG_FILE = "mijnbib.ini"
 
@@ -30,10 +32,14 @@ class FakeMechanizeBrowser:
 
     Set the string to be returned upon form submission using `form_response`.
     Customize the string for faking (in)valid login responses.
+
+    Set the string to be returned upon opening a URL using `open_responses`.
+    If `open_responses` is None, the open method will return a dummy response.
     """
 
-    def __init__(self, form_response: str) -> None:
+    def __init__(self, form_response: str, open_responses: dict | None = None) -> None:
         self._form_response = form_response.encode("utf8")
+        self._open_responses = open_responses
         # trick for nested prop, from https://stackoverflow.com/a/35190607/50899
         self._factory = X("_factory")
         self._factory.is_html = None  # can be whatever
@@ -42,7 +48,12 @@ class FakeMechanizeBrowser:
         pass
 
     def open(self, url, timeout=0) -> BinaryIO:
-        return io.BytesIO(b"some response html")
+        print("Opening URL:", url)
+        if isinstance(self._open_responses, dict) and url in self._open_responses:
+            response = self._open_responses[url]
+        else:
+            response = b"some response html"
+        return io.BytesIO(response)
 
     def select_form(self, *args, **kwargs):
         pass
@@ -178,3 +189,80 @@ class TestCustomParser:
 
     # def test_extendresponse_parser_can_be_overridden(self):
     # Not so easy to write test for
+
+
+class TestGetAccounts:
+    def test_get_accounts(self):
+        mb = MijnBibliotheek("user", "pwd")
+        mb._br = FakeMechanizeBrowser(
+            form_response="Profiel",  # needed for faking login
+            open_responses={
+                "https://bibliotheek.be/api/my-library/memberships": b"""
+                    {
+                    "Dijk92 - Bibliotheek Gent": [
+                        {
+                        "hasError": false,
+                        "id": "123456",
+                        "isBlocked": false,
+                        "isExpired": false,
+                        "libraryName": "Dijk92 - Bibliotheek Gent",
+                        "library": "https://gent.bibliotheek.be",
+                        "name": "John Doe"
+                        },
+                        {
+                        "hasError": false,
+                        "id": "111222",
+                        "isBlocked": false,
+                        "isExpired": false,
+                        "libraryName": "Brussels",
+                        "library": "https://bxl.bibliotheek.be",
+                        "name": "Jane Smith"
+                        }
+                    ]
+                    }
+                """,
+                "https://bibliotheek.be/api/my-library/123456/activities": b"""
+                    {
+                    "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/123456/leenhistoriek",
+                    "numberOfHolds": 2,
+                    "numberOfLoans": 5,
+                    "openAmount": "3,20"
+                    }
+                """,
+                "https://bibliotheek.be/api/my-library/111222/activities": b"""
+                    {
+                    "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/123456/leenhistoriek",
+                    "numberOfHolds": 1,
+                    "numberOfLoans": 1,
+                    "openAmount": "0,00"
+                    }
+                """,
+            },
+        )  # type: ignore
+
+        accounts = mb.get_accounts()
+
+        assert accounts == [
+            Account(
+                library_name="Dijk92 - Bibliotheek Gent",
+                id="123456",
+                user="John Doe",
+                open_amounts=3.20,
+                loans_count=5,
+                reservations_count=2,
+                loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/uitleningen",
+                reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/reservaties",
+                open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/te-betalen",
+            ),
+            Account(
+                library_name="Brussels",
+                id="111222",
+                user="Jane Smith",
+                open_amounts=0.00,
+                loans_count=1,
+                reservations_count=1,
+                loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/uitleningen",
+                reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/reservaties",
+                open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",
+            ),
+        ]
