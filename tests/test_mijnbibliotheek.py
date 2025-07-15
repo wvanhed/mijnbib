@@ -48,7 +48,7 @@ class FakeMechanizeBrowser:
         pass
 
     def open(self, url, timeout=0) -> BinaryIO:
-        print("Opening URL:", url)
+        # print("Opening URL:", url)
         if isinstance(self._open_responses, dict) and url in self._open_responses:
             response = self._open_responses[url]
         else:
@@ -194,7 +194,7 @@ class TestCustomParser:
 class TestGetAccounts:
     def test_get_accounts(self, caplog):
         mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(
+        mb._br = FakeMechanizeBrowser(  # type: ignore
             form_response="Profiel",  # needed for faking login
             open_responses={
                 "https://bibliotheek.be/api/my-library/memberships": b"""
@@ -275,7 +275,7 @@ class TestGetAccounts:
         self,
     ):
         mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(
+        mb._br = FakeMechanizeBrowser(  # type: ignore
             form_response="Profiel",  # needed for faking login
             open_responses={
                 "https://bibliotheek.be/api/my-library/memberships": b"""
@@ -291,7 +291,7 @@ class TestGetAccounts:
 
     def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_activity(self):
         mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(
+        mb._br = FakeMechanizeBrowser(  # type: ignore
             form_response="Profiel",  # needed for faking login
             open_responses={
                 "https://bibliotheek.be/api/my-library/memberships": b"""
