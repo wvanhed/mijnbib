@@ -167,11 +167,17 @@ class MijnBibliotheek:
         memberships_api_url = self.BASE_URL + "/api/my-library/memberships"
         _log.debug(f"Fetching memberships data (json) from '{memberships_api_url}' ... ")
         response = self._br.open(memberships_api_url, timeout=TIMEOUT)
-        memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
-        memberships = []
-        for _library_name, membership_list in memberships_data.items():
-            for ms in membership_list:
-                memberships.append(ms)
+        try:
+            memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+            memberships = []
+            for _library_name, membership_list in memberships_data.items():
+                for ms in membership_list:
+                    memberships.append(ms)
+        except Exception as e:
+            raise IncompatibleSourceError(
+                f"Failed to fetch memberhips/accounts: '{type(e).__name__}: {e!s}'",
+                html_body="",
+            ) from e
         _log.debug("Number of accounts found: %s", len(memberships))
 
         # Create Account objects for each membership

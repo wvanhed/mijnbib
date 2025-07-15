@@ -271,6 +271,24 @@ class TestGetAccounts:
             ),
         ]
 
+    def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_memberships(
+        self,
+    ):
+        mb = MijnBibliotheek("user", "pwd")
+        mb._br = FakeMechanizeBrowser(
+            form_response="Profiel",  # needed for faking login
+            open_responses={
+                "https://bibliotheek.be/api/my-library/memberships": b"""
+                    {
+                    this is invalid json
+                    }
+                """
+            },
+        )  # type: ignore
+
+        with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
+            _accounts = mb.get_accounts()
+
     def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_activity(self):
         mb = MijnBibliotheek("user", "pwd")
         mb._br = FakeMechanizeBrowser(
