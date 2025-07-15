@@ -192,7 +192,7 @@ class TestCustomParser:
 
 
 class TestGetAccounts:
-    def test_get_accounts(self):
+    def test_get_accounts(self, caplog):
         mb = MijnBibliotheek("user", "pwd")
         mb._br = FakeMechanizeBrowser(
             form_response="Profiel",  # needed for faking login
@@ -210,7 +210,7 @@ class TestGetAccounts:
                         "name": "John Doe"
                         },
                         {
-                        "hasError": false,
+                        "hasError": true,
                         "id": "111222",
                         "isBlocked": false,
                         "isExpired": false,
@@ -234,13 +234,16 @@ class TestGetAccounts:
                     "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/123456/leenhistoriek",
                     "numberOfHolds": 1,
                     "numberOfLoans": 1,
-                    "openAmount": "0,00"
+                    "openAmount": "5,00"
                     }
                 """,
             },
         )  # type: ignore
 
         accounts = mb.get_accounts()
+
+        # caplog.set_level(logging.WARNING)
+        assert "Account 111222 reports error, skipping counts and amounts" in caplog.text
 
         assert accounts == [
             Account(
@@ -254,13 +257,14 @@ class TestGetAccounts:
                 reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/reservaties",
                 open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/te-betalen",
             ),
+            # Note: 2nd account has `hasError` set to True, so some values are None
             Account(
                 library_name="Brussels",
                 id="111222",
                 user="Jane Smith",
-                open_amounts=0.00,
-                loans_count=1,
-                reservations_count=1,
+                open_amounts=0.00,  # 0 instead of 5.00,
+                loans_count=None,  # must be None instead 1
+                reservations_count=None,  # must be None instead 1
                 loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/uitleningen",
                 reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/reservaties",
                 open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",

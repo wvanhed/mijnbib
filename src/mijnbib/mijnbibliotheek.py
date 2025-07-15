@@ -161,42 +161,25 @@ class MijnBibliotheek:
         if not self._logged_in:
             self.login()
 
-        # First fetch the accounts (= memberships) from the API
+        accounts: dict[int, Account] = {}
+
+        # Fetch the accounts (= memberships) from the API,
         memberships_api_url = self.BASE_URL + "/api/my-library/memberships"
         _log.debug(f"Fetching memberships data (json) from '{memberships_api_url}' ... ")
         response = self._br.open(memberships_api_url, timeout=TIMEOUT)
         memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
         memberships = []
         for _library_name, membership_list in memberships_data.items():
-            for membership in membership_list:
-                memberships.append(membership)
+            for ms in membership_list:
+                memberships.append(ms)
         _log.debug("Number of accounts found: %s", len(memberships))
 
-        # Then, fetch activity data for each membership, and create Account objects
-        accounts = []
+        # Create Account objects for each membership
         for ms in memberships:
-            try:
-                activities_api_url = self.BASE_URL + f"/api/my-library/{ms['id']}/activities"
-                _log.debug(f"Fetching activity data (json) from '{activities_api_url}' ... ")
-                response = self._br.open(activities_api_url, timeout=TIMEOUT)
-                activity_data = json.loads(response.read().decode("utf-8"))  # type:ignore
-
-                number_of_loans = activity_data.get("numberOfLoans", 0)
-                number_of_holds = activity_data.get("numberOfHolds", 0)
-                open_amount = float(activity_data.get("openAmount", "0,00").replace(",", "."))
-            except Exception as e:
-                raise IncompatibleSourceError(
-                    f"Failed to fetch activity data for account {ms['id']}: {e!s}",
-                    html_body="",
-                ) from e
-
-            acc = Account(
+            accounts[ms["id"]] = Account(
+                id=ms["id"],  # e.g. "123456"
                 library_name=ms["libraryName"],  # e.g. "Dijk 92 - Bibliotheek Gent"
                 user=ms["name"],  # e.g. "John Doe"
-                id=ms["id"],  # e.g. "123456"
-                loans_count=number_of_loans,
-                reservations_count=number_of_holds,
-                open_amounts=open_amount,
                 loans_url=(
                     self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/uitleningen"
                 ),
@@ -206,10 +189,38 @@ class MijnBibliotheek:
                 open_amounts_url=(
                     self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/te-betalen"
                 ),
+                # temporarily None (or 0), will be populated in next step, if possible
+                loans_count=None,
+                reservations_count=None,
+                open_amounts=0,
             )
-            accounts.append(acc)
 
-        return accounts
+        # Fetch activity data for each relevant membership, and augment Account data
+        for ms in memberships:
+            if ms["hasError"] is True:
+                _log.warning(f"Account {ms['id']} reports error, skipping counts and amounts")
+                continue
+
+            a_id = ms["id"]
+            acc = accounts[a_id]
+            try:
+                activities_api_url = self.BASE_URL + f"/api/my-library/{a_id}/activities"
+                _log.debug(f"Fetching activity data (json) from '{activities_api_url}' ... ")
+                response = self._br.open(activities_api_url, timeout=TIMEOUT)
+                activity_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+
+                acc.loans_count = activity_data.get("numberOfLoans", 0)
+                acc.reservations_count = activity_data.get("numberOfHolds", 0)
+                acc.open_amounts = float(
+                    activity_data.get("openAmount", "0,00").replace(",", ".")
+                )
+            except Exception as e:
+                raise IncompatibleSourceError(
+                    f"Failed to fetch activity data for account {a_id}: {e!s}",
+                    html_body="",
+                ) from e
+
+        return list(accounts.values())
 
     def get_all_info(self, all_as_dicts=False) -> dict:
         """Return all available information, for all accounts.
