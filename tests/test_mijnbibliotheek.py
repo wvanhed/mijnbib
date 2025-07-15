@@ -9,7 +9,7 @@ from typing import BinaryIO
 import pytest
 
 from mijnbib import MijnBibliotheek
-from mijnbib.errors import AuthenticationError
+from mijnbib.errors import AuthenticationError, IncompatibleSourceError
 from mijnbib.login_handlers import LoginByForm, LoginByOAuth
 from mijnbib.models import Account, Loan, Reservation
 
@@ -270,3 +270,34 @@ class TestGetAccounts:
                 open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",
             ),
         ]
+
+    def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_activity(self):
+        mb = MijnBibliotheek("user", "pwd")
+        mb._br = FakeMechanizeBrowser(
+            form_response="Profiel",  # needed for faking login
+            open_responses={
+                "https://bibliotheek.be/api/my-library/memberships": b"""
+                    {
+                    "Dijk92 - Bibliotheek Gent": [
+                        {
+                        "hasError": false,
+                        "id": "123456",
+                        "isBlocked": false,
+                        "isExpired": false,
+                        "libraryName": "Dijk92 - Bibliotheek Gent",
+                        "library": "https://gent.bibliotheek.be",
+                        "name": "John Doe"
+                        }
+                    ]
+                    }
+                """,
+                "https://bibliotheek.be/api/my-library/123456/activities": b"""
+                    {
+                    this is invalid json
+                    }
+                """,
+            },
+        )  # type: ignore
+
+        with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
+            _accounts = mb.get_accounts()

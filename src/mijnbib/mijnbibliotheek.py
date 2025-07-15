@@ -216,7 +216,7 @@ class MijnBibliotheek:
                 )
             except Exception as e:
                 raise IncompatibleSourceError(
-                    f"Failed to fetch activity data for account {a_id}: {e!s}",
+                    f"Failed to fetch activity data for account {a_id}: '{type(e).__name__}: {e!s}'",
                     html_body="",
                 ) from e
 
