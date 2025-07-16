@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.8.1 - WIP
+
+- impr: handle accounts which report being in error
+
 ## v0.8.0 - 2025-07-12
 
 - fix: adapt to breaking changes in accounts page
