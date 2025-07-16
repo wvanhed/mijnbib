@@ -161,51 +161,68 @@ class MijnBibliotheek:
         if not self._logged_in:
             self.login()
 
-        # First fetch the accounts (= memberships) from the API
-        memberships_api_url = self.BASE_URL + "/api/my-library/memberships"
+        # Fetch the accounts (= memberships) from the API
+        memberships_api_url = f"{self.BASE_URL}/api/my-library/memberships"
         _log.debug(f"Fetching memberships data (json) from '{memberships_api_url}' ... ")
         response = self._br.open(memberships_api_url, timeout=TIMEOUT)
-        memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
-        memberships = []
-        for _library_name, membership_list in memberships_data.items():
-            for membership in membership_list:
-                memberships.append(membership)
+        try:
+            memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+            memberships = []
+            for _library_name, membership_list in memberships_data.items():
+                for ms in membership_list:
+                    memberships.append(ms)
+        except Exception as e:
+            raise IncompatibleSourceError(
+                f"Failed to fetch memberhips/accounts: '{type(e).__name__}: {e!s}'",
+                html_body="",
+            ) from e
+
         _log.debug("Number of accounts found: %s", len(memberships))
 
-        # Then, fetch activity data for each membership, and create Account objects
+        # Fetch activities for each account, and create Account objects
         accounts = []
         for ms in memberships:
-            try:
-                activities_api_url = self.BASE_URL + f"/api/my-library/{ms['id']}/activities"
-                _log.debug(f"Fetching activity data (json) from '{activities_api_url}' ... ")
-                response = self._br.open(activities_api_url, timeout=TIMEOUT)
-                activity_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+            if ms["hasError"] is True:
+                # Note: this is an assumption, have not yet observed this in practice
+                _log.warning(f"Account {ms['id']} reports error, skipping counts and amounts")
+                loans_count = None
+                reservations_count = None
+                open_amounts = 0
+            else:
+                # Fetch activities for this account, to get counts and amounts
+                try:
+                    activities_api_url = (
+                        f"{self.BASE_URL}/api/my-library/{ms['id']}/activities"
+                    )
+                    _log.debug(
+                        f"Fetching activity data (json) from '{activities_api_url}' ... "
+                    )
+                    response = self._br.open(activities_api_url, timeout=TIMEOUT)
+                    activity_data = json.loads(response.read().decode("utf-8"))  # type:ignore
 
-                number_of_loans = activity_data.get("numberOfLoans", 0)
-                number_of_holds = activity_data.get("numberOfHolds", 0)
-                open_amount = float(activity_data.get("openAmount", "0,00").replace(",", "."))
-            except Exception as e:
-                raise IncompatibleSourceError(
-                    f"Failed to fetch activity data for account {ms['id']}: {e!s}",
-                    html_body="",
-                ) from e
+                    loans_count = activity_data.get("numberOfLoans", 0)
+                    reservations_count = activity_data.get("numberOfHolds", 0)
+                    open_amounts = float(
+                        activity_data.get("openAmount", "0,00").replace(",", ".")
+                    )
+                except mechanize.HTTPError as e:
+                    raise e
+                except Exception as e:
+                    raise IncompatibleSourceError(
+                        f"Failed to fetch activity data for account {ms['id']}: '{type(e).__name__}: {e!s}'",
+                        html_body="",
+                    ) from e
 
             acc = Account(
-                library_name=ms["libraryName"],  # e.g. "Dijk 92 - Bibliotheek Gent"
-                user=ms["name"],  # e.g. "John Doe"
-                id=ms["id"],  # e.g. "123456"
-                loans_count=number_of_loans,
-                reservations_count=number_of_holds,
-                open_amounts=open_amount,
-                loans_url=(
-                    self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/uitleningen"
-                ),
-                reservations_url=(
-                    self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/reservaties"
-                ),
-                open_amounts_url=(
-                    self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{ms['id']}/te-betalen"
-                ),
+                id=ms["id"],
+                library_name=ms["libraryName"],
+                user=ms["name"],
+                loans_url=f"{self.BASE_URL}/mijn-bibliotheek/lidmaatschappen/{ms['id']}/uitleningen",
+                reservations_url=f"{self.BASE_URL}/mijn-bibliotheek/lidmaatschappen/{ms['id']}/reservaties",
+                open_amounts_url=f"{self.BASE_URL}/mijn-bibliotheek/lidmaatschappen/{ms['id']}/te-betalen",
+                loans_count=loans_count,
+                reservations_count=reservations_count,
+                open_amounts=open_amounts,
             )
             accounts.append(acc)
 

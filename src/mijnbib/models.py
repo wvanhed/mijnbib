@@ -49,9 +49,9 @@ class Account:
     library_name: str  # e.g. "Dijk 92 - Bibliotheek Gent"
     user: str  # e.g. "John Doe"
     id: str  # e.g. "123456"
-    loans_count: int | None
+    loans_count: int | None  # None if number can not be determined
     loans_url: str
-    reservations_count: int | None
+    reservations_count: int | None  # None if number can not be determined
     reservations_url: str
     open_amounts: float
     open_amounts_url: str
