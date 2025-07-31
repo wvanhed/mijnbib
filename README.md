@@ -58,11 +58,39 @@ Via de command-line kan je de module als volgt aanroepen:
 
     python -m mijnbib loans
     python -m mijnbib --version
-    python -m mijnbib --help        # om alle opties te zien.
 
 Of, rechtstreeks via:
 
     mijnbib loans
+
+De optie `--help` toont alle beschikbare opties
+
+    $ mijnbib --help
+    usage: mijnbib [-h] [-V] [-v] {all,accounts,loans,reservations,login} ...
+
+    Interact with bibliotheek.be website, e.g. to retrieve loans, reservations or accounts.
+
+    Specify the required authentication parameters (username, password, ...) 
+    as a parameter of the subcommando. See the help of a subcommando for all 
+    parameters, e.g. `mijnbib --help all`
+    More convenient is creating a `mijnbib.ini` file containing the parameters:
+    [DEFAULT]
+    username = john
+    password = 123456
+    accountid = 456
+
+    positional arguments:
+    {all,accounts,loans,reservations,login}
+        all                 retrieve all information for all accounts
+        accounts            retrieve accounts
+        loans               retrieve loans for account id
+        reservations        retrieve reservations for account id
+        login               just log in, and report if success or not
+
+    options:
+    -h, --help            show this help message and exit
+    -V, --version         show program's version number and exit
+    -v, --verbose         show debug logging
 
 ## Opmerkingen
 
