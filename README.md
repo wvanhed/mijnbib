@@ -68,7 +68,8 @@ De optie `--help` toont alle beschikbare opties
     $ mijnbib --help
     usage: mijnbib [-h] [-V] [-v] {all,accounts,loans,reservations,login} ...
 
-    Interact with bibliotheek.be website, e.g. to retrieve loans, reservations or accounts.
+    Interact with bibliotheek.be website, e.g. to retrieve loans, reservations
+    or accounts.
 
     Specify the required authentication parameters (username, password, ...) 
     as a parameter of the subcommando. See the help of a subcommando for all 
