@@ -1,35 +1,36 @@
 # mijnbib
 
-Python API voor bibliotheek.be (voorheen mijn.bibliotheek.be)
+Python API for bibliotheek.be (formerly mijn.bibliotheek.be)
 
-Met deze Python library kan je jouw ontleende items, reservaties en
-accountinfo opvragen indien je een account hebt op <https://bibliotheek.be>.
+With this Python library you can retrieve your borrowed items, reservations and
+account information if you have an account on <https://bibliotheek.be>, the
+Flemish & Brussels public library network.
 
-## Installatie
+## Installation
 
-Installeer via:
+Install via:
 
     pip install mijnbib
 
-Of, om een ugrade af te dwingen:
+Or, to force an upgrade:
 
     pip install --upgrade mijnbib
 
-## Gebruik
+## Usage
 
-Bijvoorbeeld, het opvragen van je ontleende items kan als volgt (na installatie):
+For example, retrieving your borrowed items can be done as follows (after installation):
 
     from mijnbib import MijnBibliotheek
 
     username = "johndoe"
     password = "12345678"
-    account_id = "123"  # zie het getal in de URL, of via mb.get_accounts()
+    account_id = "123"  # see the number in the URL, or via mb.get_accounts()
 
     mb = MijnBibliotheek(username, password)
     loans = mb.get_loans(account_id)
     print(loans)
 
-Voor een meer leesbare versie, gebruik `pprint()`:
+For a more readable version, use `pprint()`:
 
     import pprint
     pprint.pprint([l for l in loans])
@@ -49,21 +50,21 @@ Voor een meer leesbare versie, gebruik `pprint()`:
       account_id='123'
       )]
 
-Voor meer voorbeelden, zie de code in de folder `examples`.
-Daarin wordt ook `asdict` gebruikt voor conversie naar een dictionary.
+For more examples, see the code in the `examples` folder.
+It also uses `asdict` for conversion to a dictionary.
 
 ## Command-line interface
 
-Via de command-line kan je de module als volgt aanroepen:
+You can call the module from the command-line as follows:
 
     python -m mijnbib loans
     python -m mijnbib --version
 
-Of, rechtstreeks via:
+Or, directly via the CLI command:
 
     mijnbib loans
 
-De optie `--help` toont alle beschikbare opties
+The `--help` option shows all available options
 
     $ mijnbib --help
     usage: mijnbib [-h] [-V] [-v] {all,accounts,loans,reservations,login} ...
@@ -93,19 +94,19 @@ De optie `--help` toont alle beschikbare opties
     -V, --version         show program's version number and exit
     -v, --verbose         show debug logging
 
-## Opmerkingen
+## Notes
 
-- **Authenticatie**. Inloggen bij de bibliotheek.be website gebeurt standaard
-  via een webformulier. Het is ook mogelijk om de `oauth` manier te gebruiken;
-  maar dit is nog experimenteel.
+- **Authentication**. Logging in to the bibliotheek.be website is done by default
+  via a web form. It is also possible to use the `oauth` method;
+  but this is still experimental.
 
         mb = MijnBibliotheek(username, password, login_by="oauth")
         accounts = mb.get_accounts()
 
-- **Foutafhandeling**. Afhankelijk van de toepassing, kan het aangeraden zijn om
-  foutafhandeling te voorzien. Het bestand `errors.py` bevat de lijst van
-  Mijnbib-specifieke exceptions. De docstrings van de publieke methods bevatten
-  de errors die kunnen optreden. Bijvoorbeeld:
+- **Error handling**. Depending on the application, it may be advisable to
+  provide error handling. The `errors.py` file contains the list of
+  Mijnbib-specific exceptions. The docstrings of the public methods contain
+  the errors that can occur. For example:
 
         from mijnbib import AuthenticationError, MijnbibError, MijnBibliotheek
 
@@ -117,20 +118,20 @@ De optie `--help` toont alle beschikbare opties
         except MijnbibError as e:
             print(e)  # any other custom mijnbib error
 
-- **Compatibiliteit met bibliotheek.be** - Deze Python API haalt zijn gegevens
-  via webscraping van de bibliotheek.be website.
-  Daardoor is ze afhankelijk van de structuur van de website. Bij een wijziging aan
-  de structuur van de website is het dus heel waarschijnlijk dat alle of bepaalde
-  functionaliteit plots niet meer werkt.  
-  In dat geval is het wachten tot deze Python library geupdate is om met de nieuwe
-  structuur om te gaan.  
-  Voorzie een try/except wrapper, waarbij je ofwel `MijnbibError` opvangt, of de
-  meer specifieke `IncompatibleSourceError`.
+- **Compatibility with bibliotheek.be** - This Python API retrieves its data
+  via web scraping of the bibliotheek.be website.
+  Therefore it depends on the structure of the website. When the structure of
+  the website changes, it is very likely that all or certain functionality
+  will suddenly stop working.  
+  In that case, you have to wait until this Python library is updated to deal
+  with the new structure.  
+  Provide a try/except wrapper, where you either catch `MijnbibError`, or the
+  more specific `IncompatibleSourceError`.
 
-## Alternatieven
+## Alternatives
 
-De Home Assistant plugin <https://github.com/myTselection/bibliotheek_be> scraped
-op een gelijkaardige manier de bibliotheek.be website.
+The Home Assistant plugin <https://github.com/myTselection/bibliotheek_be> scrapes
+the bibliotheek.be website in a similar way.
 
 ## Development
 
