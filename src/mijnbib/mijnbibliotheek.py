@@ -18,7 +18,6 @@ from mijnbib.const import TIMEOUT, USER_AGENT
 from mijnbib.errors import (
     ExtendLoanError,
     IncompatibleSourceError,
-    InvalidExtendLoanURL,
     ItemAccessError,
     TemporarySiteError,
 )
@@ -283,36 +282,28 @@ class MijnBibliotheek:
         Raises:
             AuthenticationError
             IncompatibleSourceError
-            InvalidExtendLoanURL
             ExtendLoanError
         """
-        # NOTE: would make more sense to return loan list (since final page is loan page)
-        # Perhaps retrieving those loans again, and check extendability would also be good idea.
         if not self._logged_in:
             self.login()
 
         _log.info(f"Will extend loan via url: {extend_url}")
-        try:
-            response = self._br.open(extend_url, timeout=TIMEOUT)
-        except mechanize.HTTPError as e:
-            if e.code == 500:
-                raise InvalidExtendLoanURL(
-                    f"Probably invalid extend loan URL: {extend_url}"
-                ) from e
-            else:
-                raise e
 
-        try:
-            self._br.select_form(id="my-library-extend-loan-form")
-        except mechanize.FormNotFoundError as e:
-            raise IncompatibleSourceError("Can not find extend loan form", html_body="") from e
+        # Add referer header (otherwise 500 error)
+        account_id = extend_url.split("/")[5]  # Add more robust parsing?
+        referer_url = (
+            self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen"
+        )
+        self._br.set_header("Referer", referer_url)
+        _log.debug(f"Will add the following headers: {self._br.addheaders}")
 
         if not execute:
             _log.warning("SIMULATING extending the loan. Will stop now.")
             return False, {}
 
+        # Extend loan(s)
         try:
-            response = self._br.submit()  # pylint: disable=assignment-from-none
+            response = self._br.open(extend_url, timeout=TIMEOUT)
         except mechanize.HTTPError as e:
             if e.code == 500:
                 # duh, server crashes on unexpected id or id combinations
@@ -322,6 +313,8 @@ class MijnBibliotheek:
                 raise ExtendLoanError(f"Could not extend loans using url: {extend_url}") from e
             else:
                 raise e
+        finally:
+            self._br.set_header("Referer", None)  # clean up
 
         # disclaimer: not sure if other codes are realistic
         success = response.code == 200 if response is not None else False
@@ -331,16 +324,21 @@ class MijnBibliotheek:
 
         # Try to add result details, but don't fail if we fail to parse details, it's tricky :-)
         try:
-            # On submit, we arrive at "uitleningen" (loans) page, which lists the result
+            # We get redirected to "uitleningen" (loans) page, which lists
+            # (a) extension results and (b) all loans
             html_string = response.read().decode("utf-8")  # type:ignore
             # Path("response.html").write_text("html_string")  # for debugging
             details = self._extend_response_page_parser.parse(html_string)
             if "likely_success" in details and details["likely_success"] is False:
                 # Probably valid page (http=200) but with 'Foutmelding'
                 success = False
+            # Get all loans again
+            # loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
+            # details["all_loans"] = loans
         except Exception as e:
             _log.warning(f"Could not parse loan extending result. Error: {e}")
             details = {}
+        _log.debug(f"Extend loan details: {details}")
 
         return success, details
 

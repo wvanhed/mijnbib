@@ -131,19 +131,22 @@ class TestExtendResponsePageParser:
         assert ExtendResponsePageParser._parse_extend_response_status_blob("") == {
             "likely_success": False,
             "count": 0,
-            "details": [],
+            "extension_info": [],
         }
 
     def test_parse_extend_response_status_blob__success_case(self):
         html_string = """
-          <div data-drupal-messages>
-            <div role="contentinfo" aria-label="Statusbericht" class="messages messages--status">
-              <i class="icon fa fa-exclamation-triangle" aria-hidden="true"></i>
-              <h2 class="visually-hidden">Statusbericht</h2>
-              <ul class="messages__list">
-                <li class="messages__item">Deze uitleningen werden succesvol verlengd:</li>
-                <li class="messages__item">"<em class="placeholder">Het schip der doden</em>" tot 08/01/2024.</li>
-              </ul>
+          <div role="contentinfo" aria-label="Statusbericht" class="messages messages--status">
+            <i class="icon fa-solid fa-check" aria-hidden="true"></i>
+            <div role="alert">
+              <div class="messages--text">
+                <h2 class="visually-hidden">Statusbericht</h2>
+                <p>Deze uitleningen werden succesvol verlengd:</p>
+                <ul>
+                  <li>"<em class="placeholder">Het schip der doden</em>" tot
+                    08/01/2024.</li>
+                </ul>
+              </div>
             </div>
           </div>
         """
@@ -154,10 +157,13 @@ class TestExtendResponsePageParser:
         assert actual_result == {
             "likely_success": True,
             "count": 1,
-            "details": [{"title": "Het schip der doden", "until": datetime.date(2024, 1, 8)}],
+            "extension_info": [
+                {"title": "Het schip der doden", "until": datetime.date(2024, 1, 8)}
+            ],
         }
 
     def test_parse_extend_response_status_blob__foutmelding_case(self):
+        # TODO: this is outdated. There is probably a new error message format
         html_string = """
           <div data-drupal-messages="">
             <div role="contentinfo" aria-label="Foutmelding" class="messages messages--error"
@@ -182,5 +188,5 @@ class TestExtendResponsePageParser:
         assert actual_result == {
             "likely_success": False,
             "count": 0,
-            "details": [],
+            "extension_info": [],
         }

@@ -419,45 +419,48 @@ class ExtendResponsePageParser(Parser):
         """Return details on loans that where extended succesfully.
 
         >>> html_string = '''
-        ... <div role="contentinfo" aria-label="Statusbericht" class="messages messages--status"
-        ...  ... >
-        ...  <i class="icon fa fa-exclamation-triangle" aria-hidden="true"></i>
-        ...  <h2 class="visually-hidden">Statusbericht</h2>
-        ...  <ul class="messages__list">
-        ...    <li class="messages__item">Deze uitleningen werden succesvol verlengd:</li>
-        ...    <li class="messages__item">"<em class="placeholder">Vastberaden!</em>" tot 13/01/2024.</li>
-        ...    <li class="messages__item">"<em class="placeholder">Iemand moet het doen</em>" tot 13/01/2024.</li>
-        ...  </ul>
+        ... <div role="contentinfo" aria-label="Statusbericht" class="messages messages--status">
+        ...   <i class="icon fa-solid fa-check" aria-hidden="true"></i>
+        ...   <div role="alert">
+        ...     <div class="messages--text">
+        ...       <h2 class="visually-hidden">Statusbericht</h2>
+        ...       <p>Deze uitleningen werden succesvol verlengd:</p>
+        ...       <ul>
+        ...         <li>"<em class="placeholder">Boek titel 1</em>" tot 13/01/2024.</li>
+        ...         <li>"<em class="placeholder">Boek titel 2</em>" tot 13/01/2025.</li>
+        ...       </ul>
+        ...     </div>
+        ...   </div>
         ... </div>
         ... '''
         >>> ExtendResponsePageParser._parse_extend_response_status_blob(html_string) # doctest: +NORMALIZE_WHITESPACE
-        {'likely_success': True, 'count': 2, 'details':
-            [{'title': 'Vastberaden!', 'until': datetime.date(2024, 1, 13)},
-             {'title': 'Iemand moet het doen', 'until': datetime.date(2024, 1, 13)}]}
+        {'likely_success': True, 'count': 2, 'extension_info':
+            [{'title': 'Boek titel 1', 'until': datetime.date(2024, 1, 13)},
+             {'title': 'Boek titel 2', 'until': datetime.date(2025, 1, 13)}]}
         """
         # NOTE: Unclear when & what response when no success (500 server crash on most tests with
         #       different IDs and combinations)
-        # If trying to extend loan which has already been extended, there is a red message saying
-        # "Er ging iets fout bij het verlengen"
         count = 0
-        details = []
+        extension_info = []
         success = False
         soup = BeautifulSoup(html_string, "html.parser")
         try:
-            msg_lis = soup.find("ul", class_="messages__list").find_all("li")  # type:ignore
-            if msg_lis and "werden succesvol verlengd" in msg_lis[0].get_text():
+            div = soup.find("div", class_="messages--text")
+            lis = div.find_all("li")  # type:ignore
+            if lis and "werden succesvol verlengd" in div.p.get_text():  # type:ignore
                 success = True
-                count = len(msg_lis) - 1
-                for li in msg_lis[1:]:
+                count = len(lis)
+                for li in lis:
                     until = li.get_text().rsplit(" ", 1)[-1].strip(".")
                     until = datetime.strptime(until, DATE_FORMAT).date()
-                    details.append({"title": li.em.get_text(), "until": until})
-            if msg_lis and "Er ging iets fout bij het verlengen" in msg_lis[0].get_text():
+                    extension_info.append({"title": li.em.get_text(), "until": until})  # type:ignore
+            if lis and "Er ging iets fout bij het verlengen" in lis[0].get_text():
                 # Probably, messages could be mix of success and failures. However, unclear.
                 # So, just play safe and report it was no success at all
                 count = 0
                 success = False
-        except AttributeError:
+        except AttributeError as e:
+            _log.debug(f"Could not parse extend response status blob: {e}")
             _log.warning("Unexpected html structure. Reporting 0 extensions; could be wrong")
 
-        return {"likely_success": success, "count": count, "details": details}
+        return {"likely_success": success, "count": count, "extension_info": extension_info}
