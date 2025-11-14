@@ -278,7 +278,8 @@ class MijnBibliotheek:
             A result tuple (success, details).
             The `success` element is True if extension was successful, False otherwise.
             The `details` element contains a dictionary with more details; consider
-            it for debugging purposes.
+            it for debugging purposes. It may contain an `all_loans` key, which lists
+            all current loans after extension attempt.
         Raises:
             AuthenticationError
             IncompatibleSourceError
@@ -327,14 +328,14 @@ class MijnBibliotheek:
             # We get redirected to "uitleningen" (loans) page, which lists
             # (a) extension results and (b) all loans
             html_string = response.read().decode("utf-8")  # type:ignore
-            # Path("response.html").write_text("html_string")  # for debugging
+            # Path("response.html").write_text(html_string)  # for debugging
             details = self._extend_response_page_parser.parse(html_string)
             if "likely_success" in details and details["likely_success"] is False:
                 # Probably valid page (http=200) but with 'Foutmelding'
                 success = False
-            # Get all loans again
-            # loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
-            # details["all_loans"] = loans
+            # Parse all loans (includes extended ones)
+            loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
+            details["all_loans"] = loans
         except Exception as e:
             _log.warning(f"Could not parse loan extending result. Error: {e}")
             details = {}
