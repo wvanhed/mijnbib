@@ -2,6 +2,12 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.9.0 - 2025-11-16
+
+- fix: adapt to changed extending loans handling, which was broken
+- impr: [breaking] return all loans in extending loans response
+- impr: various documentation improvements (readme and code)
+
 ## v0.8.1 - 2025-07-16
 
 - impr: handle accounts which report being in error
