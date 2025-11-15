@@ -4,8 +4,10 @@ new: new feature /  impr: improvement /  fix: bug fix
 
 ## v0.9.0 - 2025-11-15
 
-- fix: adapt to changed extending loans handling, which resulted in extend_loans() and extend_loans_by_ids() being broken
-- impr: [breaking] return all loans in extending loans response for extend_loans() and extend_loans_by_ids()
+- fix: adapt to breaking changes in extend loans page, which resulted in
+  extend_loans() and extend_loans_by_ids() being broken
+- impr: [breaking] return all loans in extending loans response for
+  extend_loans() and extend_loans_by_ids()
 - impr: various documentation improvements (readme and code)
 
 ## v0.8.1 - 2025-07-16
