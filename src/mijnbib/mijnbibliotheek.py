@@ -255,7 +255,9 @@ class MijnBibliotheek:
             }
         return info
 
-    def extend_loans(self, extend_url: str, execute: bool = False) -> tuple[bool, dict]:
+    def extend_loans(
+        self, extend_url: str, execute: bool = False
+    ) -> tuple[bool, list[Loan] | None, dict]:
         """Extend given loan(s) via extend_url. Will login first if needed.
 
         The url looks like
@@ -275,11 +277,11 @@ class MijnBibliotheek:
             extend_url: url to use for extending one or multiple loans
             execute: A development flag; set to True actually perform loan extension
         Returns:
-            A result tuple (success, details).
-            The `success` element is True if extension was successful, False otherwise.
-            The `details` element contains a dictionary with more details; consider
-            it for debugging purposes. It may contain an `all_loans` key, which lists
-            all current loans after extension attempt.
+            A result tuple (success, loans, details).
+            - `success`: True if extension was successful, False otherwise.
+            - `loans`:   list of all Loan objects, after extension attempt. None if parsing failed.
+            - `details`: a dictionary with more details, might be empty; consider it for
+                         debugging purposes.
         Raises:
             AuthenticationError
             IncompatibleSourceError
@@ -290,7 +292,7 @@ class MijnBibliotheek:
 
         _log.info(f"Will extend loan via url: {extend_url}")
 
-        # Add referer header (otherwise 500 error)
+        # Referer header is needed (otherwise 500 error), and determines page redirected to
         account_id = extend_url.split("/")[5]  # Add more robust parsing?
         referer_url = (
             self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen"
@@ -335,17 +337,17 @@ class MijnBibliotheek:
                 success = False
             # Parse all loans (includes extended ones)
             loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
-            details["all_loans"] = loans
         except Exception as e:
             _log.warning(f"Could not parse loan extending result. Error: {e}")
+            loans = None
             details = {}
         _log.debug(f"Extend loan details: {details}")
 
-        return success, details
+        return success, loans, details
 
     def extend_loans_by_ids(
         self, acc_extids: list[tuple[str, str]], execute: bool = False
-    ) -> tuple[bool, dict]:
+    ) -> tuple[bool, list[Loan] | None, dict]:
         """Extend loan(s) via list of (account_id, extend_id) tuples. Will login first if needed.
 
         For return value, exceptions thrown and more details, see `extend_loans()`
