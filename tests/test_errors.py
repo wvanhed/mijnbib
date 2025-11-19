@@ -1,17 +1,17 @@
+import pytest
+
 from mijnbib.errors import CanNotConnectError, IncompatibleSourceError
 
 
 def test_incompatiblesourceerror():
-    try:
+    with pytest.raises(IncompatibleSourceError) as e:
         raise IncompatibleSourceError("message", "some source text")
-    except IncompatibleSourceError as e:
-        assert str(e) == "message"
-        assert e.html_body == "some source text"
+    assert str(e.value) == "message"
+    assert e.value.html_body == "some source text"
 
 
-def test_connotconnecterror():
-    try:
+def test_cannotconnecterror():
+    with pytest.raises(CanNotConnectError) as e:
         raise CanNotConnectError("message", "some url")
-    except CanNotConnectError as e:
-        assert str(e) == "message"
-        assert e.url == "some url"
+    assert str(e.value) == "message"
+    assert e.value.url == "some url"

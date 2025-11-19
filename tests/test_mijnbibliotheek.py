@@ -16,11 +16,11 @@ from mijnbib.models import Account, Loan, Reservation
 CONFIG_FILE = "mijnbib.ini"
 
 
-@pytest.fixture()
+@pytest.fixture
 def creds_config(scope="module"):
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
-    yield dict(**config.defaults())
+    return dict(**config.defaults())
 
 
 class X(str):
@@ -76,7 +76,9 @@ class TestLoginByOption:
         assert mb._login_handler_class == LoginByOAuth
 
     def test_login_by_options_invalid_option_raises_error(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValueError, match=r".*login_by needs to be either 'oauth' or 'form'.*"
+        ):
             MijnBibliotheek("user", "pwd", login_by="foo")
 
 
