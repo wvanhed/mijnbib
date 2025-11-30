@@ -309,7 +309,7 @@ class MijnBibliotheek:
 
         if not execute:
             _log.warning("SIMULATING extending the loan. Will stop now.")
-            return False, {}
+            return False, [], {}
 
         # Extend loan(s)
         try:
