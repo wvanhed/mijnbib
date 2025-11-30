@@ -5,6 +5,7 @@ import re
 import urllib.parse
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Any
 
 from bs4 import BeautifulSoup
 
@@ -27,7 +28,7 @@ DATE_FORMAT = "%d/%m/%Y"
 
 class Parser(ABC):
     @abstractmethod
-    def parse(self, html: str, *args, **kwargs):
+    def parse(self, html: str, *args, **kwargs) -> Any:
         pass
 
 
@@ -463,4 +464,5 @@ class ExtendResponsePageParser(Parser):
             _log.debug(f"Could not parse extend response status blob: {e}")
             _log.warning("Unexpected html structure. Reporting 0 extensions; could be wrong")
 
+        return {"likely_success": success, "count": count, "extension_info": extension_info}
         return {"likely_success": success, "count": count, "extension_info": extension_info}
