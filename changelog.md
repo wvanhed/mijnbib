@@ -2,6 +2,12 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.10.0b1 - 2025-11-30
+
+- new: remove mechanize library dependency (use requests instead)
+- fix: parser return type hint
+- fix: invalid response signatiure for mocking loan extension
+
 ## v0.9.0 - 2025-11-15
 
 - fix: adapt to breaking changes in extend loans page, which resulted in
