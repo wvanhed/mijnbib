@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import configparser
-import io
 import logging
+import warnings
 from pathlib import Path
-from typing import BinaryIO
 
 import pytest
 
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError, IncompatibleSourceError
-from mijnbib.login_handlers import LoginByForm, LoginByOAuth
+from mijnbib.login_handlers import LoginByOAuth
 from mijnbib.models import Account, Loan, Reservation
 
 CONFIG_FILE = "mijnbib.ini"
@@ -23,53 +22,10 @@ def creds_config(scope="module"):
     return dict(**config.defaults())
 
 
-class X(str):
-    pass
-
-
-class FakeMechanizeBrowser:
-    """Fake Browser for easier testing.
-
-    Set the string to be returned upon form submission using `form_response`.
-    Customize the string for faking (in)valid login responses.
-
-    Set the string to be returned upon opening a URL using `open_responses`.
-    If `open_responses` is None, the open method will return a dummy response.
-    """
-
-    def __init__(self, form_response: str, open_responses: dict | None = None) -> None:
-        self._form_response = form_response.encode("utf8")
-        self._open_responses = open_responses
-        # trick for nested prop, from https://stackoverflow.com/a/35190607/50899
-        self._factory = X("_factory")
-        self._factory.is_html = None  # can be whatever
-
-    def __setitem__(self, key, value):
-        pass
-
-    def open(self, url, timeout=0) -> BinaryIO:
-        # print("Opening URL:", url)
-        if isinstance(self._open_responses, dict) and url in self._open_responses:
-            response = self._open_responses[url]
-        else:
-            response = b"some response html"
-        return io.BytesIO(response)
-
-    def select_form(self, *args, **kwargs):
-        pass
-
-    def submit(self, *args, **kwargs) -> BinaryIO:
-        return io.BytesIO(self._form_response)
-
-
 class TestLoginByOption:
-    def test_login_by_options_default_is_by_form(self):
+    def test_login_by_options_default_is_by_oauth(self):
         mb = MijnBibliotheek("user", "pwd")
-        assert mb._login_handler_class == LoginByForm
-
-    def test_login_by_options_by_form(self):
-        mb = MijnBibliotheek("user", "pwd", login_by="form")
-        assert mb._login_handler_class == LoginByForm
+        assert mb._login_handler_class == LoginByOAuth
 
     def test_login_by_options_by_oauth(self):
         mb = MijnBibliotheek("user", "pwd", login_by="oauth")
@@ -81,33 +37,16 @@ class TestLoginByOption:
         ):
             MijnBibliotheek("user", "pwd", login_by="foo")
 
-
-class TestFakedLogins:
-    def test_login_ok(self):
-        mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
-        mb.login()
-
-        assert mb._logged_in
-
-    def test_login_fails(self):
-        mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(form_response="whatever")  # type: ignore
-
-        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
-            mb.login()
-        assert mb._logged_in is False
-
-    def test_login_fails_because_of_privacy(self):
-        mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(form_response="privacyverklaring is gewijzigd")  # type: ignore
-
-        with pytest.raises(
-            AuthenticationError,
-            match=r".*Login not accepted \(likely need to accept privacy statement again\).*",
-        ):
-            mb.login()
-        assert mb._logged_in is False
+    def test_login_by_options_by_form_warns_deprecation(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            mb = MijnBibliotheek("user", "pass", login_by="form")
+            assert any(
+                issubclass(warning.category, DeprecationWarning)
+                and "'form' login_by option is deprecated" in str(warning.message)
+                for warning in w
+            )
+            assert mb._login_handler_class == LoginByOAuth
 
 
 @pytest.mark.skipif(
@@ -115,20 +54,6 @@ class TestFakedLogins:
     reason=f"Credentials config file not found: '{CONFIG_FILE}'",
 )
 class TestRealLogins:
-    def test_login_by_form_ok(self, creds_config):
-        d = creds_config
-        mb = MijnBibliotheek(d["username"], d["password"], login_by="form")
-        mb.login()
-
-        assert mb._logged_in
-
-    def test_login_by_form_wrong_creds(self, creds_config):
-        d = creds_config
-        mb = MijnBibliotheek(d["username"], "wrongpassword", login_by="form")
-        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
-            mb.login()
-        assert mb._logged_in is False
-
     def test_login_by_oauth_ok(self, creds_config):
         d = creds_config
         mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
@@ -155,7 +80,7 @@ class TestRealLogins:
 
 
 class TestCustomParser:
-    def test_loans_page_parser_can_be_overridden(self):
+    def test_loans_page_parser_can_be_overridden(self, requests_mock):
         # Arrange
         class MyCustomLoanParser:
             def parse(self, _html, _base_url, _account_id):
@@ -163,7 +88,11 @@ class TestCustomParser:
 
         mb = MijnBibliotheek("user", "pwd")
         # Fake both (a) valid login, and (b) some reponse on fetching loans page
-        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
+        mb._logged_in = True
+        requests_mock.get(
+            "https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/whatever/uitleningen",
+            text="doesn't matter what is here",
+        )
 
         # Act
         mb._loans_page_parser = MyCustomLoanParser()  # type:ignore
@@ -171,7 +100,7 @@ class TestCustomParser:
         # Assert
         assert mb.get_loans(account_id="whatever") == [Loan("some title")]
 
-    def test_reservations_parser_can_be_overridden(self):
+    def test_reservations_parser_can_be_overridden(self, requests_mock):
         # Arrange
         res = Reservation("title", "dvd", "some_url", "author", "brussels", True)
 
@@ -181,7 +110,11 @@ class TestCustomParser:
 
         mb = MijnBibliotheek("user", "pwd")
         # Fake both (a) valid login, and (b) some reponse on fetching reservations page
-        mb._br = FakeMechanizeBrowser(form_response="Profiel")  # type: ignore
+        mb._logged_in = True
+        requests_mock.get(
+            "https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/whatever/reservaties",
+            text="doesn't matter what is here",
+        )
 
         # Act
         mb._reservations_parser = MyCustomReservationsParser()  # type:ignore
@@ -194,12 +127,16 @@ class TestCustomParser:
 
 
 class TestGetAccounts:
-    def test_get_accounts(self, caplog):
+    def test_get_accounts(self, requests_mock, caplog):
         mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(  # type: ignore
-            form_response="Profiel",  # needed for faking login
-            open_responses={
-                "https://bibliotheek.be/api/my-library/memberships": b"""
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/mijn-bibliotheek/aanmelden?destination=/mijn-bibliotheek/lidmaatschappen",
+            text="doesn't matter what is here",
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
                     {
                     "Dijk92 - Bibliotheek Gent": [
                         {
@@ -223,7 +160,10 @@ class TestGetAccounts:
                     ]
                     }
                 """,
-                "https://bibliotheek.be/api/my-library/123456/activities": b"""
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/123456/activities",
+            text="""
                     {
                     "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/123456/leenhistoriek",
                     "numberOfHolds": 2,
@@ -231,7 +171,10 @@ class TestGetAccounts:
                     "openAmount": "3,20"
                     }
                 """,
-                "https://bibliotheek.be/api/my-library/111222/activities": b"""
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/111222/activities",
+            text="""
                     {
                     "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/123456/leenhistoriek",
                     "numberOfHolds": 1,
@@ -239,8 +182,7 @@ class TestGetAccounts:
                     "openAmount": "5,00"
                     }
                 """,
-            },
-        )  # type: ignore
+        )
 
         accounts = mb.get_accounts()
 
@@ -274,29 +216,30 @@ class TestGetAccounts:
         ]
 
     def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_memberships(
-        self,
+        self, requests_mock
     ):
         mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(  # type: ignore
-            form_response="Profiel",  # needed for faking login
-            open_responses={
-                "https://bibliotheek.be/api/my-library/memberships": b"""
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
                     {
                     this is invalid json
                     }
-                """
-            },
-        )  # type: ignore
+                """,
+        )
 
         with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
             _accounts = mb.get_accounts()
 
-    def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_activity(self):
+    def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_activity(
+        self, requests_mock
+    ):
         mb = MijnBibliotheek("user", "pwd")
-        mb._br = FakeMechanizeBrowser(  # type: ignore
-            form_response="Profiel",  # needed for faking login
-            open_responses={
-                "https://bibliotheek.be/api/my-library/memberships": b"""
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
                     {
                     "Dijk92 - Bibliotheek Gent": [
                         {
@@ -311,13 +254,15 @@ class TestGetAccounts:
                     ]
                     }
                 """,
-                "https://bibliotheek.be/api/my-library/123456/activities": b"""
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/123456/activities",
+            text="""
                     {
                     this is invalid json
                     }
                 """,
-            },
-        )  # type: ignore
+        )
 
         with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
             _accounts = mb.get_accounts()

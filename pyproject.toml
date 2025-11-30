@@ -15,14 +15,14 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["mijn bibliotheek", "bibliotheek"]
-dependencies = ["mechanize", "bs4", "requests"]
+dependencies = ["bs4", "requests"]
 requires-python = ">=3.8"
 
 # [project.optional-dependencies]
 # dev = ["ruff >=0.4", "pytest"]
 
 [dependency-groups]
-dev = ["ruff >=0.14", "pytest"]
+dev = ["ruff >=0.14", "pytest", "requests-mock>=1.12.1"]
 
 [project.urls]
 Homepage = "https://github.com/wvanhed/mijnbib"

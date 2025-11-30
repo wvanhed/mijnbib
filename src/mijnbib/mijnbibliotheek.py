@@ -8,11 +8,13 @@ in the MijnBibliotheek class and its public methods.
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
+import warnings
 from dataclasses import asdict
 
-import mechanize
+import requests
 
 from mijnbib.const import TIMEOUT, USER_AGENT
 from mijnbib.errors import (
@@ -21,7 +23,7 @@ from mijnbib.errors import (
     ItemAccessError,
     TemporarySiteError,
 )
-from mijnbib.login_handlers import LoginByForm, LoginByOAuth
+from mijnbib.login_handlers import LoginByOAuth
 from mijnbib.models import Account, Loan, Reservation
 from mijnbib.parsers import (
     ExtendResponsePageParser,
@@ -35,7 +37,9 @@ _log = logging.getLogger(__name__)
 class MijnBibliotheek:
     BASE_DOMAIN = "bibliotheek.be"
 
-    def __init__(self, username: str, password: str, city: str | None = None, login_by="form"):
+    def __init__(
+        self, username: str, password: str, city: str | None = None, login_by="oauth"
+    ):
         """API for interacting with the mijn.bibliotheek.be website.
 
         Args:
@@ -43,9 +47,8 @@ class MijnBibliotheek:
             password:   password
             city    :   Optional. Subdomain for the bibliotheek.be website,
                         typically your city.
-            login_by:   Optional. Either `form` (default) or `oauth`. Specfies
-                        whether authentication happens via a web-based login
-                        form (slow), or via OAauth (2x faster, but more complex flow)
+            login_by:   Optional. Legacy option `form` has been removed,
+                        and is auto-replaced by `oauth`.
         """
         _log.debug(f"Initializing {USER_AGENT}. (login_by: '{login_by}')")
         self._username = username
@@ -59,15 +62,21 @@ class MijnBibliotheek:
         if login_by == "oauth":
             self._login_handler_class = LoginByOAuth
         elif login_by == "form":
-            self._login_handler_class = LoginByForm
+            warnings.warn(
+                "'form' login_by option is deprecated and is auto-replaced by 'oauth'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._login_handler_class = LoginByOAuth
         else:
-            raise ValueError("login_by needs to be either 'oauth' or 'form'")
+            raise ValueError("login_by needs to be either 'oauth' or 'form' (deprecated)")
 
         self._logged_in = False
 
-        self._br = mechanize.Browser()
-        self._br.set_handle_robots(False)
-        self._br.set_header("User-Agent", USER_AGENT)
+        self._ses = requests.Session()
+        # Set some general request parameters, see https://stackoverflow.com/a/59317604/50899
+        self._ses.request = functools.partial(self._ses.request, timeout=TIMEOUT)  # type: ignore
+        self._ses.headers.update({"User-Agent": USER_AGENT})
 
         # Open the door for overriding parsers (but still keep private for now)
         self._loans_page_parser = LoansListPageParser()
@@ -81,9 +90,6 @@ class MijnBibliotheek:
 
         Raises:
             AuthenticationError
-            CanNotConnectError
-            IncompatibleSourceError
-            TemporarySiteError
         """
         url = (
             self.BASE_URL
@@ -94,8 +100,8 @@ class MijnBibliotheek:
         _log.info(f"Will log in at url : {url}")
         _log.info(f"           with id : {self._username}")
 
-        login_handler = self._login_handler_class(self._username, self._pwd, url, self._br)
-        self._br = login_handler.login()  # May raise AuthenticationError
+        login_handler = self._login_handler_class(self._username, self._pwd, url, self._ses)
+        self._ses = login_handler.login()  # May raise AuthenticationError
 
         self._logged_in = True
 
@@ -163,9 +169,9 @@ class MijnBibliotheek:
         # Fetch the accounts (= memberships) from the API
         memberships_api_url = f"{self.BASE_URL}/api/my-library/memberships"
         _log.debug(f"Fetching memberships data (json) from '{memberships_api_url}' ... ")
-        response = self._br.open(memberships_api_url, timeout=TIMEOUT)
+        response = self._ses.get(memberships_api_url)
         try:
-            memberships_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+            memberships_data = json.loads(response.text)
             memberships = []
             for _library_name, membership_list in memberships_data.items():
                 for ms in membership_list:
@@ -196,15 +202,16 @@ class MijnBibliotheek:
                     _log.debug(
                         f"Fetching activity data (json) from '{activities_api_url}' ... "
                     )
-                    response = self._br.open(activities_api_url, timeout=TIMEOUT)
-                    activity_data = json.loads(response.read().decode("utf-8"))  # type:ignore
+                    response = self._ses.get(activities_api_url)
+                    response.raise_for_status()
+                    activity_data = json.loads(response.text)
 
                     loans_count = activity_data.get("numberOfLoans", 0)
                     reservations_count = activity_data.get("numberOfHolds", 0)
                     open_amounts = float(
                         activity_data.get("openAmount", "0,00").replace(",", ".")
                     )
-                except mechanize.HTTPError as e:
+                except requests.RequestException as e:
                     raise e
                 except Exception as e:
                     raise IncompatibleSourceError(
@@ -297,8 +304,8 @@ class MijnBibliotheek:
         referer_url = (
             self.BASE_URL + f"/mijn-bibliotheek/lidmaatschappen/{account_id}/uitleningen"
         )
-        self._br.set_header("Referer", referer_url)
-        _log.debug(f"Will add the following headers: {self._br.addheaders}")
+        self._ses.headers.update({"Referer": referer_url})
+        _log.debug(f"Will add the following headers: {self._ses.headers}")
 
         if not execute:
             _log.warning("SIMULATING extending the loan. Will stop now.")
@@ -306,9 +313,10 @@ class MijnBibliotheek:
 
         # Extend loan(s)
         try:
-            response = self._br.open(extend_url, timeout=TIMEOUT)
-        except mechanize.HTTPError as e:
-            if e.code == 500:
+            response = self._ses.get(extend_url)
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            if e.response.status_code == 500:
                 # duh, server crashes on unexpected id or id combinations
                 # (e.g. nonexisting id, ids that belong to different library accounts)
                 # However, if multiple id's, some of them *might* have been extended,
@@ -317,10 +325,10 @@ class MijnBibliotheek:
             else:
                 raise e
         finally:
-            self._br.set_header("Referer", None)  # clean up
+            self._ses.headers.pop("Referer")  # clean up
 
         # disclaimer: not sure if other codes are realistic
-        success = response.code == 200 if response is not None else False
+        success = response.status_code == 200
 
         if success:
             _log.debug("Looks like extending the loan(s) was successful")
@@ -329,7 +337,7 @@ class MijnBibliotheek:
         try:
             # We get redirected to "uitleningen" (loans) page, which lists
             # (a) extension results and (b) all loans
-            html_string = response.read().decode("utf-8")  # type:ignore
+            html_string = response.text
             # Path("response.html").write_text(html_string)  # for debugging
             details = self._extend_response_page_parser.parse(html_string)
             if "likely_success" in details and details["likely_success"] is False:
@@ -374,20 +382,20 @@ class MijnBibliotheek:
     def _open_account_loans_page(self, acc_url: str) -> str:
         _log.debug(f"Opening page '{acc_url}' ... ")
         try:
-            response = self._br.open(acc_url, timeout=TIMEOUT)
-        except mechanize.HTTPError as e:
-            if e.code == 404:
+            response = self._ses.get(acc_url)
+            if response.status_code == 404:
                 raise ItemAccessError(
                     "Loans url can not be opened (404 reponse). Likely incorrect or "
                     f"nonexisting account ID in the url '{acc_url}'"
-                ) from e
-            if e.code == 500:
+                )
+            if response.status_code == 500:
                 raise TemporarySiteError(
                     f"Loans url can not be opened (500 response), url '{acc_url}'"
-                ) from e
+                )
+        except requests.RequestException as e:
             raise ItemAccessError(
                 f"Loans url can not be opened. Reason unknown. Error: {e}"
             ) from e
 
-        html = response.read().decode("utf-8") if response is not None else ""
+        html = response.text
         return html
