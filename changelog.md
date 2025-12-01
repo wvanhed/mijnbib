@@ -2,11 +2,14 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## v0.10.0b1 - 2025-11-30
+## v0.10.0 - 2025-12-01
 
-- new: remove mechanize library dependency (use requests instead)
-- fix: parser return type hint
-- fix: invalid response signatiure for mocking loan extension
+This release contains only technical changes. There is no new or changed
+user-facing functionality.
+
+- new: remove mechanize library dependency (use requests lib instead)
+- fix: parser return type hint set to Any instead of None
+- fix: invalid response signature when mocking extend_loans() call
 
 ## v0.9.0 - 2025-11-15
 
