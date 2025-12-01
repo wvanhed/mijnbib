@@ -34,3 +34,6 @@ build:
 publish:
 	# uv run --with twine --with setuptools --no-project twine upload --repository testpypi dist/*
 	uv run --with twine --with setuptools --no-project twine upload dist/*
+
+biblist:
+	uv run python update_biblist.py

@@ -6,6 +6,8 @@ With this Python library you can retrieve your borrowed items, reservations and
 account information if you have an account on <https://bibliotheek.be>, the
 Flemish & Brussels public library network.
 
+A list of supported libraries can be found in [libraries.md](./libraries.md).
+
 ## Installation
 
 Install via:
