@@ -4,7 +4,11 @@ Python API for bibliotheek.be (formerly mijn.bibliotheek.be)
 
 With this Python library you can retrieve your borrowed items, reservations and
 account information if you have an account on <https://bibliotheek.be>, the
-Flemish & Brussels public library network.
+Flemish & Brussels public library network. You can also extend loans.
+
+This API allows you to show and extend your loans (or loans from multiple accounts
+in your family) in your own coding projects, such as a small desktop or web
+application.
 
 A list of supported libraries can be found in [libraries.md](./libraries.md).
 
