@@ -98,13 +98,6 @@ The `--help` option shows all available options
 
 ## Notes
 
-- **Authentication**. Logging in to the bibliotheek.be website is done by default
-  via a web form. It is also possible to use the `oauth` method;
-  but this is still experimental.
-
-        mb = MijnBibliotheek(username, password, login_by="oauth")
-        accounts = mb.get_accounts()
-
 - **Error handling**. Depending on the application, it may be advisable to
   provide error handling. The `errors.py` file contains the list of
   Mijnbib-specific exceptions. The docstrings of the public methods contain
