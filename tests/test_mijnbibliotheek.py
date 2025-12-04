@@ -49,6 +49,7 @@ class TestLoginByOption:
             assert mb._login_handler_class == LoginByOAuth
 
 
+@pytest.mark.real
 @pytest.mark.skipif(
     not Path(CONFIG_FILE).exists(),
     reason=f"Credentials config file not found: '{CONFIG_FILE}'",

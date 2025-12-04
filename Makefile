@@ -1,7 +1,9 @@
+dev: format lint testfast
+
 init:
 	uv sync
 
-all: clean init lint formatcheck test build
+all: clean init format lint test build biblist
 
 clean:
 	rm -rf dist
@@ -23,6 +25,12 @@ formatcheck:
 
 test:
 	uv run pytest -v
+	uv run python -m doctest src/mijnbib/mijnbibliotheek.py
+	uv run python -m doctest src/mijnbib/parsers.py
+	uv run python -m doctest src/mijnbib/models.py
+
+testfast:
+	uv run pytest -k "not real"
 	uv run python -m doctest src/mijnbib/mijnbibliotheek.py
 	uv run python -m doctest src/mijnbib/parsers.py
 	uv run python -m doctest src/mijnbib/models.py

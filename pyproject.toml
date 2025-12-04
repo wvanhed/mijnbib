@@ -36,6 +36,9 @@ mijnbib = "mijnbib.__main__:main"
 minversion = "7.0"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 # addopts = "--doctest-modules --doctest-continue-on-failure"
+markers = [
+    "real: test that performs real http requests (to mijn.bibliotheek.be)",
+]
 
 [tool.ruff]
 line-length = 95 # same as Black
