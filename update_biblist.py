@@ -11,7 +11,7 @@ response = requests.get(URL, timeout=10)
 response.raise_for_status()
 data = response.json()
 
-labels = [entry["label"] + "  " for entry in data]
+labels = sorted([entry["label"] + "  " for entry in data], key=str.casefold)
 
 print("Writing libraries to:", OUTPUT_FILE)
 preamble = (
