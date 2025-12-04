@@ -1,6 +1,7 @@
 # List of Libraries
 
 This file contains the list of libraries that are supported by bibliotheek.be.
+You can use the search function in your browser to find a particular library or city.
 A more up-to-date list might be available at <https://bibliotheek.be/bibliotheken>.
 
 Afhaallocatie Zomergem (Lievegem)  

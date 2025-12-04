@@ -17,6 +17,7 @@ print("Writing libraries to:", OUTPUT_FILE)
 preamble = (
     "# List of Libraries\n\n"
     "This file contains the list of libraries that are supported by bibliotheek.be.\n"
+    "You can use the search function in your browser to find a particular library or city.\n"
     "A more up-to-date list might be available at <https://bibliotheek.be/bibliotheken>.\n\n"
 )
 Path(OUTPUT_FILE).write_text(preamble + "\n".join(labels) + "\n", encoding="utf-8")
