@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC, abstractmethod
 from urllib.parse import parse_qs, urlsplit
 
 import requests
@@ -11,26 +10,12 @@ from mijnbib.errors import AuthenticationError
 _log = logging.getLogger(__name__)
 
 
-class LoginHandler(ABC):
+class LoginByOAuth:
     def __init__(self, username, password, url: str, ses: requests.Session):
         self._username = username
         self._pwd = password
         self._url = url
         self._ses = ses
-
-    @abstractmethod
-    def login(self) -> requests.Session:
-        pass
-
-
-class LoginByForm(LoginHandler):
-    """Uses mechanize library to log in."""
-
-    pass  # Removed this class as 'form' login is deprecated (requires mechanize)
-
-
-class LoginByOAuth(LoginHandler):
-    """Uses requests library to log in."""
 
     def login(self) -> requests.Session:
         response = self._log_in()
