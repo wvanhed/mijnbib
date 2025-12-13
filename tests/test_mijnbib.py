@@ -15,7 +15,6 @@ def test_mijnbib_available_imports():
             "Account",
             "ItemAccessError",
             "AuthenticationError",
-            "CanNotConnectError",
             "ExtendLoanError",
             "IncompatibleSourceError",
             "MijnbibError",

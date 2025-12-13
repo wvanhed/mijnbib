@@ -12,7 +12,6 @@ except importlib.metadata.PackageNotFoundError:
 #   from mijnbib import MijnBibliotheek, Loan
 from .errors import (
     AuthenticationError,
-    CanNotConnectError,
     ExtendLoanError,
     IncompatibleSourceError,
     ItemAccessError,

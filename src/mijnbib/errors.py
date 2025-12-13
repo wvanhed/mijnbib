@@ -17,24 +17,7 @@ class ItemAccessError(MijnbibError):
     """
 
 
-class InvalidExtendLoanURL(MijnbibError):
-    """Raised when the extending loan(s) url is not considered valid."""
-
-
 # *** server-side errors ***
-
-
-class CanNotConnectError(MijnbibError):
-    """Raised when a url can not be reached.
-
-    Args:
-        msg     Descriptive message of the error
-        url     Url that could not be reached
-    """
-
-    def __init__(self, msg: str, url: str):
-        super().__init__(msg)
-        self.url = url
 
 
 class IncompatibleSourceError(MijnbibError):

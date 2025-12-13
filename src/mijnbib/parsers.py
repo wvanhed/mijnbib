@@ -465,4 +465,3 @@ class ExtendResponsePageParser(Parser):
             _log.warning("Unexpected html structure. Reporting 0 extensions; could be wrong")
 
         return {"likely_success": success, "count": count, "extension_info": extension_info}
-        return {"likely_success": success, "count": count, "extension_info": extension_info}
