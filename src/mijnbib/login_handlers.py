@@ -23,7 +23,7 @@ class LoginByOAuth:
         _validate_logged_in(html)  # raises AuthenticationError if not ok
         return self._ses
 
-    def _log_in(self):
+    def _log_in(self) -> requests.Response:
         # Flow is:
         # (1) GET   https://bibliotheek.be/mijn-bibliotheek/aanmelden          ?destination=/mijn-bibliotheek/lidmaatschappen
         #           then, via 302 auto-redirect
@@ -34,7 +34,7 @@ class LoginByOAuth:
         #           then, via 302 auto-redirect (from destination param)
         #     GET   https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen
 
-        _log.debug("Opening login page ... ")
+        _log.debug("(1) Opening login page ... ")
         response = self._ses.get(self._url)
         # Will perform auto-redirect to
         # https://mijn.bibliotheek.be/openbibid/rest/auth/authorize?
@@ -49,7 +49,7 @@ class LoginByOAuth:
             _log.debug("Looks like we are still or already logged in. Skip auth/login call")
             return response
 
-        _log.debug("Doing login call ... ")
+        _log.debug("(2) Doing login call ... ")
         data = {
             "hint": qp.get("hint"),  # "login"
             "token": qp.get("oauth_token"),  # 32-char string
