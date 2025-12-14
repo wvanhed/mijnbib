@@ -134,8 +134,9 @@ class LoansListPageParser(Parser):
         _log.debug("Number of loans found: %s", len(loans))
         return loans
 
+    @staticmethod
     def _get_loan_info_from_div(
-        self, loan_div_html: str, base_url: str, branch: str, acc_id: str
+        loan_div_html: str, base_url: str, branch: str, acc_id: str
     ) -> Loan:
         """Return loan from html loan_div blob."""
         loan_div = BeautifulSoup(loan_div_html, "html.parser")
@@ -389,8 +390,8 @@ class ExtendResponsePageParser(Parser):
         html_blob = self._extract_html_from_response_script_tag(html)
         return self._parse_extend_response_status_blob(html_blob)
 
-    @classmethod
-    def _extract_html_from_response_script_tag(cls, html: str):
+    @staticmethod
+    def _extract_html_from_response_script_tag(html: str):
         """Return html-encoded data from ajax encoded data.
 
         The extending loan response contains the result in a ajax script thingy.
@@ -415,8 +416,8 @@ class ExtendResponsePageParser(Parser):
 
         return html_blob
 
-    @classmethod
-    def _parse_extend_response_status_blob(cls, html_string: str) -> dict:
+    @staticmethod
+    def _parse_extend_response_status_blob(html_string: str) -> dict:
         """Return details on loans that where extended succesfully.
 
         >>> html_string = '''
