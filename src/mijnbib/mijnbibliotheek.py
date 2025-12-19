@@ -172,10 +172,7 @@ class MijnBibliotheek:
         response = self._ses.get(memberships_api_url)
         try:
             memberships_data = json.loads(response.text)
-            memberships = []
-            for _library_name, membership_list in memberships_data.items():
-                for ms in membership_list:
-                    memberships.append(ms)
+            memberships = _parse_api_memberships(memberships_data)
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Failed to fetch memberhips/accounts: '{type(e).__name__}: {e!s}'",
@@ -399,3 +396,12 @@ class MijnBibliotheek:
 
         html = response.text
         return html
+
+
+def _parse_api_memberships(memberships_data: dict) -> list[dict]:
+    membership_list = []
+    for _region_name, provider in memberships_data.items():
+        region = provider["region"]
+        for _rijksregisternr, memberships in region.items():
+            membership_list.extend(memberships)
+    return membership_list

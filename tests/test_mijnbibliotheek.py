@@ -138,28 +138,43 @@ class TestGetAccounts:
         requests_mock.get(
             "https://bibliotheek.be/api/my-library/memberships",
             text="""
-                    {
-                    "Dijk92 - Bibliotheek Gent": [
+                {
+                  "Dijk92": {
+                    "region": {
+                      "111111111111": [
                         {
-                        "hasError": false,
-                        "id": "123456",
-                        "isBlocked": false,
-                        "isExpired": false,
-                        "libraryName": "Dijk92 - Bibliotheek Gent",
-                        "library": "https://gent.bibliotheek.be",
-                        "name": "John Doe"
+                          "hasError": false,
+                          "id": "123456",
+                          "isBlocked": false,
+                          "isExpired": false,
+                          "libraryName": "Dijk92 - Bibliotheek Gent",
+                          "library": "https://gent.bibliotheek.be",
+                          "name": "John Doe"
                         },
                         {
-                        "hasError": true,
-                        "id": "111222",
-                        "isBlocked": false,
-                        "isExpired": false,
-                        "libraryName": "Brussels",
-                        "library": "https://bxl.bibliotheek.be",
-                        "name": "Jane Smith"
+                          "hasError": false,
+                          "id": "456789",
+                          "isBlocked": false,
+                          "isExpired": false,
+                          "libraryName": "Dijk92 - Bibliotheek Sint-Amandsberg",
+                          "library": "https://sintamandsberg.bibliotheek.be",
+                          "name": "John Doe"
                         }
-                    ]
+                      ],
+                      "22222222222": [
+                        {
+                          "hasError": true,
+                          "id": "111222",
+                          "isBlocked": false,
+                          "isExpired": false,
+                          "libraryName": "Dijk92 - Bibliotheek Gent",
+                          "library": "https://gent.bibliotheek.be",
+                          "name": "Jane Smith"
+                        }
+                      ]
                     }
+                  }
+                }
                 """,
         )
         requests_mock.get(
@@ -170,6 +185,17 @@ class TestGetAccounts:
                     "numberOfHolds": 2,
                     "numberOfLoans": 5,
                     "openAmount": "3,20"
+                    }
+                """,
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/456789/activities",
+            text="""
+                    {
+                    "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/456789/leenhistoriek",
+                    "numberOfHolds": 0,
+                    "numberOfLoans": 1,
+                    "openAmount": "0,00"
                     }
                 """,
         )
@@ -190,31 +216,41 @@ class TestGetAccounts:
         # caplog.set_level(logging.WARNING)
         assert "Account 111222 reports error, skipping counts and amounts" in caplog.text
 
-        assert accounts == [
-            Account(
-                library_name="Dijk92 - Bibliotheek Gent",
-                id="123456",
-                user="John Doe",
-                open_amounts=3.20,
-                loans_count=5,
-                reservations_count=2,
-                loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/uitleningen",
-                reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/reservaties",
-                open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/te-betalen",
-            ),
-            # Note: 2nd account has `hasError` set to True, so some values are None
-            Account(
-                library_name="Brussels",
-                id="111222",
-                user="Jane Smith",
-                open_amounts=0.00,  # 0 instead of 5.00,
-                loans_count=None,  # must be None instead 1
-                reservations_count=None,  # must be None instead 1
-                loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/uitleningen",
-                reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/reservaties",
-                open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",
-            ),
-        ]
+        assert len(accounts) == 3
+        assert accounts[0] == Account(
+            library_name="Dijk92 - Bibliotheek Gent",
+            id="123456",
+            user="John Doe",
+            open_amounts=3.20,
+            loans_count=5,
+            reservations_count=2,
+            loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/uitleningen",
+            reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/reservaties",
+            open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123456/te-betalen",
+        )
+        assert accounts[1] == Account(
+            library_name="Dijk92 - Bibliotheek Sint-Amandsberg",
+            id="456789",
+            user="John Doe",
+            open_amounts=0.0,
+            loans_count=1,
+            reservations_count=0,
+            loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/456789/uitleningen",
+            reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/456789/reservaties",
+            open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/456789/te-betalen",
+        )
+        # # Note: 3nd account has `hasError` set to True, so some values are None
+        assert accounts[2] == Account(
+            library_name="Dijk92 - Bibliotheek Gent",
+            id="111222",
+            user="Jane Smith",
+            open_amounts=0.00,  # 0 instead of 5.00,
+            loans_count=None,  # must be None instead 1
+            reservations_count=None,  # must be None instead 1
+            loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/uitleningen",
+            reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/reservaties",
+            open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",
+        )
 
     def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_memberships(
         self, requests_mock
@@ -241,19 +277,23 @@ class TestGetAccounts:
         requests_mock.get(
             "https://bibliotheek.be/api/my-library/memberships",
             text="""
-                    {
-                    "Dijk92 - Bibliotheek Gent": [
+                {
+                  "Dijk92": {
+                    "region": {
+                      "111111111111": [
                         {
-                        "hasError": false,
-                        "id": "123456",
-                        "isBlocked": false,
-                        "isExpired": false,
-                        "libraryName": "Dijk92 - Bibliotheek Gent",
-                        "library": "https://gent.bibliotheek.be",
-                        "name": "John Doe"
+                          "hasError": false,
+                          "id": "123456",
+                          "isBlocked": false,
+                          "isExpired": false,
+                          "libraryName": "Dijk92 - Bibliotheek Gent",
+                          "library": "https://gent.bibliotheek.be",
+                          "name": "John Doe"
                         }
-                    ]
+                      ]
                     }
+                  }
+                }
                 """,
         )
         requests_mock.get(
