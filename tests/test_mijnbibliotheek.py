@@ -267,3 +267,24 @@ class TestGetAccounts:
 
         with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
             _accounts = mb.get_accounts()
+
+
+@pytest.mark.real
+@pytest.mark.skipif(
+    not Path(CONFIG_FILE).exists(),
+    reason=f"Credentials config file not found: '{CONFIG_FILE}'",
+)
+class TestRealGetRetrievals:
+    def test_get_accounts_ok(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"])
+        accounts = mb.get_accounts()
+
+        assert isinstance(accounts, list)
+
+    def test_get_loans_ok(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"])
+        loans = mb.get_loans(d["accountid"])
+
+        assert isinstance(loans, list)
