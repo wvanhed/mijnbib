@@ -49,37 +49,6 @@ class TestLoginByOption:
             assert mb._login_handler_class == LoginByOAuth
 
 
-@pytest.mark.real
-@pytest.mark.skipif(
-    not Path(CONFIG_FILE).exists(),
-    reason=f"Credentials config file not found: '{CONFIG_FILE}'",
-)
-class TestRealLogins:
-    def test_login_by_oauth_ok(self, creds_config):
-        d = creds_config
-        mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
-        mb.login()
-
-        assert mb._logged_in
-
-    def test_login_by_oauth_wrong_creds(self, creds_config):
-        d = creds_config
-        mb = MijnBibliotheek(d["username"], "wrongpassword", login_by="oauth")
-        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
-            mb.login()
-        assert mb._logged_in is False
-
-    def test_login_by_oauth_already_logged_in(self, creds_config, caplog):
-        d = creds_config
-        mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
-        caplog.set_level(logging.DEBUG)
-        mb.login()
-        mb.login()  # should be faster, and emit debug message
-
-        assert "already logged in" in caplog.text  # to verify we do take fast lane
-        assert mb._logged_in
-
-
 class TestCustomParser:
     def test_loans_page_parser_can_be_overridden(self, requests_mock):
         # Arrange
@@ -314,7 +283,31 @@ class TestGetAccounts:
     not Path(CONFIG_FILE).exists(),
     reason=f"Credentials config file not found: '{CONFIG_FILE}'",
 )
-class TestRealGetRetrievals:
+class TestRealCalls:
+    def test_login_by_oauth_ok(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
+        mb.login()
+
+        assert mb._logged_in
+
+    def test_login_by_oauth_wrong_creds(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], "wrongpassword", login_by="oauth")
+        with pytest.raises(AuthenticationError, match=r".*Login not accepted.*"):
+            mb.login()
+        assert mb._logged_in is False
+
+    def test_login_by_oauth_already_logged_in(self, creds_config, caplog):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
+        caplog.set_level(logging.DEBUG)
+        mb.login()
+        mb.login()  # should be faster, and emit debug message
+
+        assert "already logged in" in caplog.text  # to verify we do take fast lane
+        assert mb._logged_in
+
     def test_get_accounts_ok(self, creds_config):
         d = creds_config
         mb = MijnBibliotheek(d["username"], d["password"])
