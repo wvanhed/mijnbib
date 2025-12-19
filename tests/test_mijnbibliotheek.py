@@ -328,3 +328,10 @@ class TestRealGetRetrievals:
         loans = mb.get_loans(d["accountid"])
 
         assert isinstance(loans, list)
+
+    def test_get_reservations_ok(self, creds_config):
+        d = creds_config
+        mb = MijnBibliotheek(d["username"], d["password"])
+        res = mb.get_reservations(d["accountid"])
+
+        assert isinstance(res, list)
