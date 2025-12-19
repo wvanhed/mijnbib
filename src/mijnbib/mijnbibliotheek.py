@@ -184,6 +184,11 @@ class MijnBibliotheek:
         # Fetch activities for each account, and create Account objects
         accounts = []
         for ms in memberships:
+            if "hasError" not in ms:
+                raise IncompatibleSourceError(
+                    "Unexpected JSON structure for memberships/accounts. Was expecting key 'hasError'.",
+                    html_body=str(memberships),
+                )
             if ms["hasError"] is True:
                 # Note: this is an assumption, have not yet observed this in practice
                 _log.warning(f"Account {ms['id']} reports error, skipping counts and amounts")

@@ -221,6 +221,31 @@ class TestGetAccounts:
             open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",
         )
 
+    def test_get_accounts_raises_incompatiblesource_error_on_unexpected_json_for_memberships(
+        self, requests_mock
+    ):
+        mb = MijnBibliotheek("user", "pwd")
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
+                    {
+                      "Dijk92": {
+                        "region": {
+                          "111111111111": [
+                            {
+                              "not": "good"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                """,
+        )
+
+        with pytest.raises(IncompatibleSourceError, match=r".*Was expecting key 'hasError'.*"):
+            _accounts = mb.get_accounts()
+
     def test_get_accounts_raises_incompatiblesource_error_on_invalid_json_for_memberships(
         self, requests_mock
     ):

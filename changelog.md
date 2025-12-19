@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.x.x
+
+- impr: throw IncompatibleSourceError if memberships api returns unexpected json
+
 ## v0.10.1 - 2025-12-19
 
 - fix: adapt to breaking changes in memberships api, which resulted in
