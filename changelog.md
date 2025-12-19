@@ -4,7 +4,8 @@ new: new feature /  impr: improvement /  fix: bug fix
 
 ## v0.10.1 - 2025-12-19
 
-- fix: adapt to broken changes in memberships api
+- fix: adapt to breaking changes in memberships api, which resulted in
+  get_accounts() being broken
 - impr: various code refactors
 
 ## v0.10.0 - 2025-12-01
