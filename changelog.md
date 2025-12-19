@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.10.1 - 2025-12-19
+
+- fix: adapt to broken changes in memberships api
+- impr: various code refactors
+
 ## v0.10.0 - 2025-12-01
 
 This release contains only technical changes. There is no new or changed
