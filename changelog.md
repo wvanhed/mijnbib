@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## v0.x.x
+## v0.10.2 — 2025-12-25
 
 - impr: upgrade dependencies and make minimum versions explicit
 - impr: throw IncompatibleSourceError if memberships api returns unexpected json
