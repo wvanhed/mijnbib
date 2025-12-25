@@ -6,6 +6,7 @@ new: new feature /  impr: improvement /  fix: bug fix
 
 - impr: upgrade dependencies and make minimum versions explicit
 - impr: throw IncompatibleSourceError if memberships api returns unexpected json
+- impr: populate response body when IncompatibleSourceError is raised
 
 ## v0.10.1 - 2025-12-19
 
