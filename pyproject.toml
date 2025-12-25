@@ -81,3 +81,11 @@ ignore = [
     "T",    # flake8-print (avoiding prints)
 ]
 "examples/*" = ["T"]
+
+[tool.uv-ship]
+release-branch = "main"
+tag-prefix = "v"
+allow-dirty = false
+changelog-path = "changelog.md"
+changelog-template = "- {message}"
+commit-message = "new version {new_ver}"
