@@ -126,7 +126,7 @@ class MijnBibliotheek:
             raise e
         except Exception as e:
             raise IncompatibleSourceError(
-                f"Problem scraping loans ({e!s})", html_body=""
+                f"Problem scraping loans ({e!s})", html_body=html_string
             ) from e
         return loans
 
@@ -148,7 +148,7 @@ class MijnBibliotheek:
             holds = self._reservations_parser.parse(html_string)
         except Exception as e:
             raise IncompatibleSourceError(
-                f"Problem scraping reservations ({e!s})", html_body=""
+                f"Problem scraping reservations ({e!s})", html_body=html_string
             ) from e
         return holds
 
@@ -176,7 +176,7 @@ class MijnBibliotheek:
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Failed to fetch memberhips/accounts: '{type(e).__name__}: {e!s}'",
-                html_body="",
+                html_body=response.text,
             ) from e
 
         _log.debug("Number of accounts found: %s", len(memberships))
@@ -218,7 +218,7 @@ class MijnBibliotheek:
                 except Exception as e:
                     raise IncompatibleSourceError(
                         f"Failed to fetch activity data for account {ms['id']}: '{type(e).__name__}: {e!s}'",
-                        html_body="",
+                        html_body=response.text,
                     ) from e
 
             acc = Account(
