@@ -420,6 +420,7 @@ def get_item_info(url: str) -> ItemInfo:
         url: URL of the item detail page, stored in the `url` property of
              a Loan object.
     """
+    _log.info(f"Retrieving item info for url: '{url}'")
     response = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT})
     item = ItemDetailParser().parse(url, html=response.text)
     return item
