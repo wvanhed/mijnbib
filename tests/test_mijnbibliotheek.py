@@ -10,6 +10,7 @@ import pytest
 from mijnbib import MijnBibliotheek
 from mijnbib.errors import AuthenticationError, IncompatibleSourceError
 from mijnbib.login_handlers import LoginByOAuth
+from mijnbib.mijnbibliotheek import get_item_info
 from mijnbib.models import Account, Loan, Reservation
 
 CONFIG_FILE = "mijnbib.ini"
@@ -353,3 +354,18 @@ class TestRealCalls:
         res = mb.get_reservations(d["accountid"])
 
         assert isinstance(res, list)
+
+    def test_get_item_info_ok(self, creds_config):
+        url = "https://gent.bibliotheek.be/catalogus/jef-nys/de-koningin-van-onderland/strip/library-marc-vlacc_9920921"
+        item = get_item_info(url)
+
+        assert item.url == url
+        assert item.title == "De koningin van Onderland"
+        assert item.series_name == "De belevenissen van Jommeke"
+        assert item.series_number == 3
+        assert item.type == "Strip"
+        assert (
+            item.cover_url
+            == "https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789462100534&VLACCnr=9920921&CDR=&EAN=&ISMN=&EBS=&coversize=medium"
+        )
+        assert item.isbn == "9789462100534"

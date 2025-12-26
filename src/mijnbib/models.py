@@ -35,6 +35,24 @@ class Loan:
 
 
 @dataclass
+class ItemInfo:
+    """An item with some properties, ment to augment a Loan object.
+
+    Can be used to fetch extra information about a loaned item. Also, sometimes
+    these properties are not available in the Loan object itself.
+    The `url` property can be used to match the item to a Loan object.
+    """
+
+    url: str = ""
+    title: str = ""  # full title, including subtitle
+    series_name: str = ""  # e.g. "Suske en Wiske"
+    series_number: int | None = None  # e.g. 3 for "#3" in the series
+    type: str = ""  # e.g. "Strip"
+    cover_url: str = ""
+    isbn: str = ""  # e.g. "9789031436013"
+
+
+@dataclass
 class Reservation:
     """A Reservation object represent an item that has been reserved.
 

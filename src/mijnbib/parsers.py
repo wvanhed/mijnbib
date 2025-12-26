@@ -10,7 +10,7 @@ from typing import Any
 from bs4 import BeautifulSoup
 
 from mijnbib.errors import TemporarySiteError
-from mijnbib.models import Loan, Reservation
+from mijnbib.models import ItemInfo, Loan, Reservation
 
 _log = logging.getLogger(__name__)
 
@@ -466,3 +466,100 @@ class ExtendResponsePageParser(Parser):
             _log.warning("Unexpected html structure. Reporting 0 extensions; could be wrong")
 
         return {"likely_success": success, "count": count, "extension_info": extension_info}
+
+
+class ItemDetailParser(Parser):
+    def parse(self, url: str, html: str) -> ItemInfo:
+        soup = BeautifulSoup(html, "html.parser")
+
+        series = self._resolve_series(soup)
+        series_number = self._resolve_series_number(soup)
+        type_ = self._resolve_type(soup)
+        cover = self._resolve_cover_link(soup)
+        title = self._resolve_title(soup)
+        isbn = self._resolve_isbn(soup)
+
+        return ItemInfo(
+            url=url,
+            title=title,
+            series_name=series,
+            series_number=series_number,
+            type=type_,
+            cover_url=cover,
+            isbn=isbn,
+        )
+
+    @staticmethod
+    def _resolve_series(soup: BeautifulSoup) -> str:
+        """Returns the series name ('Reeks'), or "" if none.
+
+        Note that there could actually be multiple series. In that case,
+        we (generally) just take the first one.
+        """
+        series_div = soup.find("div", attrs={"class": "catalog-item-full__series"})
+        if series_div is not None and series_div.a is not None:
+            series_str = series_div.a.text.strip().replace("\n", "")
+            try:
+                # looks like: "De avonturen van Urbanus ;#42"
+                series_str, _number = series_str.split(";", maxsplit=1)
+            except ValueError:
+                pass
+            return series_str
+        return ""
+
+    @staticmethod
+    def _resolve_series_number(soup: BeautifulSoup) -> int | None:
+        """Returns the series number, or None if none.
+
+        The series number is typically shown as '; #3' next to the series name,
+        where the number appears after the series link in the div's text.
+        """
+        series_div = soup.find("div", attrs={"class": "catalog-item-full__series"})
+        if series_div is not None:
+            # The full text looks like: "In de reeks: De belevenissen van Jommeke ; #3"
+            full_text = series_div.get_text()
+            # Look for pattern like "; #3" or ";3" at the end
+            match = re.search(r";\s*#?(\d+)\s*$", full_text)
+            if match:
+                return int(match.group(1))
+        return None
+
+    @staticmethod
+    def _resolve_title(soup: BeautifulSoup) -> str:
+        """Returns title, or "" if none."""
+        try:
+            title = soup.find("h1", class_="catalog-item-full__title").text.strip()
+        except AttributeError:
+            title = ""
+        return title
+
+    @staticmethod
+    def _resolve_type(soup: BeautifulSoup) -> str:
+        """Returns the loan type, or "" if none."""
+        format_div = soup.find("div", attrs={"class": "catalog-item-full__format"})
+        if format_div is not None:
+            type_str = format_div.text.strip().replace("\n", "")
+            return type_str
+        return ""
+
+    @staticmethod
+    def _resolve_cover_link(soup: BeautifulSoup) -> str:
+        """Returns the cover link, or "" if none."""
+        try:
+            cover_link = soup.find("div", class_="catalog-item-full__image").find("img")["src"]
+        except AttributeError:
+            cover_link = ""
+        return cover_link
+
+    @staticmethod
+    def _resolve_isbn(soup: BeautifulSoup) -> str:
+        """Returns the isbn, or "" if none."""
+        # ISBN is in a row div with structure:
+        # <div class="row"><span class="label">ISBN</span><span class="items"> 9789462100534 </span></div>
+        for row in soup.find_all("div", class_="row"):
+            label_span = row.find("span", class_="label")
+            if label_span and label_span.get_text(strip=True) == "ISBN":
+                items_span = row.find("span", class_="items")
+                if items_span:
+                    return items_span.get_text(strip=True)
+        return ""

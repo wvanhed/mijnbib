@@ -24,9 +24,10 @@ from mijnbib.errors import (
     TemporarySiteError,
 )
 from mijnbib.login_handlers import LoginByOAuth
-from mijnbib.models import Account, Loan, Reservation
+from mijnbib.models import Account, ItemInfo, Loan, Reservation
 from mijnbib.parsers import (
     ExtendResponsePageParser,
+    ItemDetailParser,
     LoansListPageParser,
     ReservationsPageParser,
 )
@@ -410,3 +411,15 @@ def _parse_api_memberships(memberships_data: dict) -> list[dict]:
         for _rijksregisternr, memberships in region.items():
             membership_list.extend(memberships)
     return membership_list
+
+
+def get_item_info(url: str) -> ItemInfo:
+    """Fetch extra item information from the item detail page.
+
+    Args:
+        url: URL of the item detail page, stored in the `url` property of
+             a Loan object.
+    """
+    response = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT})
+    item = ItemDetailParser().parse(url, html=response.text)
+    return item

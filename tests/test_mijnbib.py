@@ -9,6 +9,7 @@ def test_mijnbib_available_imports():
     imps = [i for i in dir(mijnbib) if not i.startswith("__")]
     assert set(imps) == set(
         [
+            "get_item_info",
             "MijnBibliotheek",
             "Loan",
             "Reservation",

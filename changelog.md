@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## [unreleased]
+
+- new: add get_item_info() to retrieve additional item information.
+
 ## v0.10.2 — 2025-12-25
 
 - impr: upgrade dependencies and make minimum versions explicit

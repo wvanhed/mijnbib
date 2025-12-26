@@ -18,5 +18,5 @@ from .errors import (
     MijnbibError,
     TemporarySiteError,
 )
-from .mijnbibliotheek import MijnBibliotheek
+from .mijnbibliotheek import MijnBibliotheek, get_item_info
 from .models import Account, Loan, Reservation
