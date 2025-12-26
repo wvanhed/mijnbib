@@ -182,7 +182,8 @@ Creating a distribution archive:
 2. Do:
 
         make all
-        uvx uv-ship next patch # (updates pyproject.toml and uv.lock, creates tag and pushes to remote)
+        uvx uv-ship next patch      # (updates pyproject.toml and uv.lock, 
+                                    #  creates tag and pushes to remote)
         make publish
 
 3. Create release in github, starting from tag
