@@ -309,7 +309,7 @@ class TestGetAccounts:
     not Path(CONFIG_FILE).exists(),
     reason=f"Credentials config file not found: '{CONFIG_FILE}'",
 )
-class TestRealCalls:
+class TestRealCallsLoginNeeded:
     def test_login_by_oauth_ok(self, creds_config):
         d = creds_config
         mb = MijnBibliotheek(d["username"], d["password"], login_by="oauth")
@@ -355,6 +355,9 @@ class TestRealCalls:
 
         assert isinstance(res, list)
 
+
+@pytest.mark.real
+class TestRealCalls:
     def test_get_item_info_ok(self, creds_config):
         url = "https://gent.bibliotheek.be/catalogus/jef-nys/de-koningin-van-onderland/strip/library-marc-vlacc_9920921"
         item = get_item_info(url)
