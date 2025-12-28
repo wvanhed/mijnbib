@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from mijnbib import MijnBibliotheek
-from mijnbib.errors import AuthenticationError, IncompatibleSourceError
+from mijnbib.errors import AuthenticationError, IncompatibleSourceError, ItemAccessError
 from mijnbib.login_handlers import LoginByOAuth
 from mijnbib.mijnbibliotheek import get_item_info
 from mijnbib.models import Account, Loan, Reservation
@@ -369,3 +369,8 @@ class TestRealCalls:
             == "https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789462100534&VLACCnr=9920921&CDR=&EAN=&ISMN=&EBS=&coversize=medium"
         )
         assert item.isbn == "9789462100534"
+
+    def test_get_item_info_nonexisting_url(self, creds_config):
+        url = "https://gent.bibliotheek.be/catalogus/jef-nys/de-koningin-van-onderland/strip/does-not-exist"
+        with pytest.raises(ItemAccessError, match=r".*Item detail page not found.*"):
+            _item = get_item_info(url)

@@ -469,7 +469,7 @@ class ExtendResponsePageParser(Parser):
 
 
 class ItemDetailParser(Parser):
-    def parse(self, url: str, html: str) -> ItemInfo:
+    def parse(self, html: str, url: str) -> ItemInfo:
         soup = BeautifulSoup(html, "html.parser")
 
         series = self._resolve_series(soup)

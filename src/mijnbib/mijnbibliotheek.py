@@ -421,6 +421,11 @@ def get_item_info(url: str) -> ItemInfo:
              a Loan object.
     """
     _log.info(f"Retrieving item info for url: '{url}'")
-    response = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT})
-    item = ItemDetailParser().parse(url, html=response.text)
-    return item
+    try:
+        response = requests.get(url, timeout=TIMEOUT, headers={"User-Agent": USER_AGENT})
+        response.raise_for_status()
+    except requests.HTTPError as e:
+        if e.response.status_code == 404:
+            raise ItemAccessError(f"Item detail page not found (404 error) at: {url}") from e
+        raise e
+    return ItemDetailParser().parse(html=response.text, url=url)
