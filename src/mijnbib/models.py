@@ -46,10 +46,10 @@ class ItemInfo:
     url: str = ""
     title: str = ""  # full title, including subtitle
     series_name: str = ""  # e.g. "Suske en Wiske"
-    series_number: int | None = None  # e.g. 3 for "#3" in the series
+    series_number: int | None = None  # e.g. 154 for "#154" in the series
     type: str = ""  # e.g. "Strip"
     cover_url: str = ""
-    isbn: str = ""  # e.g. "9789031436013"
+    isbn: str = ""  # e.g. "9789002130519"
 
 
 @dataclass
