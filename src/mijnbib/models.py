@@ -36,7 +36,7 @@ class Loan:
 
 @dataclass
 class ItemInfo:
-    """An library item with some properties, meant to augment a Loan object.
+    """A library item with some properties, meant to augment a Loan object.
 
     Can be used to fetch extra information about a loaned item. Also, sometimes
     these properties are not available in the Loan object itself.
