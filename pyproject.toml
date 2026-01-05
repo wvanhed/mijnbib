@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "mijnbib"
-version = "0.10.2"
+version = "0.10.3"
 description = "Python API voor de website mijn.bibliotheek.be"
 readme = "README.md"
 authors = [{ name = "Ward Van Heddeghem", email = "wardvh@fastmail.fm" }]
