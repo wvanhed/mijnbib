@@ -16,7 +16,6 @@ mdlint:
 lint:
 	uv run ruff check .
 
-black: format # legacy alias
 format:
 	uv run ruff check --select I . --fix 
 	uv run ruff format .
