@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## [unreleased]
+
+- impr: add python 3.14 support to testing matrix
+
 ## v0.10.3 - 2026-01-05
 
 - new: add get_item_info() to retrieve additional item information.
