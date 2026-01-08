@@ -3,12 +3,15 @@ dev: format lint testfast
 init:
 	uv sync
 
-all: clean init format lint test build biblist
+all: clean init mdlint format lint test build biblist
 
 clean:
 	rm -rf dist
 	rm -rf src/*.egg-info
 	rm -rf .venv
+
+mdlint:
+	uvx pymarkdownlnt scan .
 
 lint:
 	uv run ruff check .
