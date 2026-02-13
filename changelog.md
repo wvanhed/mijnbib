@@ -5,6 +5,7 @@ new: new feature /  impr: improvement /  fix: bug fix
 ## [unreleased]
 
 - impr: add python 3.14 support to testing matrix
+- impr: upgrade dependecies (uv.lock)
 
 ## v0.10.3 - 2026-01-05
 
