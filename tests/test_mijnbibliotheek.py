@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import configparser
 import logging
+import os
 import warnings
 from pathlib import Path
 
@@ -357,6 +358,9 @@ class TestRealCallsLoginNeeded:
 
 
 @pytest.mark.real
+@pytest.mark.skipif(
+    os.environ.get("CI") == "true", reason="Skipped in CI - website blocks GitHub Actions IPs"
+)
 class TestRealCalls:
     def test_get_item_info_ok(self, creds_config):
         url = "https://gent.bibliotheek.be/catalogus/jef-nys/de-koningin-van-onderland/strip/library-marc-vlacc_9920921"
