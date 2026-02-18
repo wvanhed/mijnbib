@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## [unreleased]
+## v0.10.5 - 2026-02-18
 
 - impr: drop support for python 3.8, to be able to use urllib3>=2.6.3
 
