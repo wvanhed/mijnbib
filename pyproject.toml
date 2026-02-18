@@ -18,8 +18,9 @@ keywords = ["mijn bibliotheek", "bibliotheek"]
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "requests>=2.32.3",
+    "urllib3>=2.6.3" # security issue CVE-2026-21441
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 
 # [project.optional-dependencies]
 # dev = ["ruff >=0.4", "pytest"]

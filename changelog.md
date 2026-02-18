@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## [unreleased]
+
+- impr: drop support for python 3.8, to be able to use urllib3>=2.6.3
+
 ## v0.10.4 - 2026-02-13
 
 - impr: add python 3.14 support to testing matrix
