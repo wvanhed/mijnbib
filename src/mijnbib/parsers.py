@@ -309,7 +309,7 @@ class ReservationsPageParser(Parser):
 
             try:
                 hold["request_on"] = (
-                    child.find("p", string=re.compile("Aangevraagd op"))
+                    child.find("p", string=re.compile(r"Aangevraagd op"))
                     .get_text()
                     .replace("Aangevraagd op ", "")
                     .strip()
@@ -320,7 +320,7 @@ class ReservationsPageParser(Parser):
 
             try:
                 hold["valid_till"] = (
-                    child.find("p", string=re.compile("Aanvraag geldig tot"))
+                    child.find("p", string=re.compile(r"Aanvraag geldig tot"))
                     .get_text()
                     .replace("Aanvraag geldig tot ", "")
                     .strip()
@@ -406,7 +406,7 @@ class ExtendResponsePageParser(Parser):
         # find relevant snippet
         soup = BeautifulSoup(html, "html.parser")
         script_txt = soup.find(
-            "script", string=re.compile("(Statusbericht|Foutmelding)")
+            "script", string=re.compile(r"(Statusbericht|Foutmelding)")
         ).get_text()
         script_txt = find_between(script_txt, '"data":"', '","settings')
 
