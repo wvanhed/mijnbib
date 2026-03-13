@@ -123,8 +123,8 @@ class MijnBibliotheek:
         html_string = self._open_account_loans_page(url)
         try:
             loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
-        except TemporarySiteError as e:
-            raise e
+        except TemporarySiteError:
+            raise
         except Exception as e:
             raise IncompatibleSourceError(
                 f"Problem scraping loans ({e!s})", html_body=html_string
@@ -214,8 +214,8 @@ class MijnBibliotheek:
                     open_amounts = float(
                         activity_data.get("openAmount", "0,00").replace(",", ".")
                     )
-                except requests.RequestException as e:
-                    raise e
+                except requests.RequestException:
+                    raise
                 except Exception as e:
                     raise IncompatibleSourceError(
                         f"Failed to fetch activity data for account {ms['id']}: '{type(e).__name__}: {e!s}'",
