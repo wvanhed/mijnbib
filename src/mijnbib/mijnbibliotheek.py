@@ -421,6 +421,12 @@ def _parse_api_memberships(memberships_data: dict) -> list[dict]:
         elif "library" in provider and isinstance(provider["library"], list):
             # StructureB: {"library": [Membership]}
             membership_list.extend(provider["library"])
+        else:
+            raise IncompatibleSourceError(
+                f"Unexpected membership structure for provider '{_region_name}'. "
+                "Expected 'region' or 'library' key.",
+                html_body=str(provider),
+            )
     return membership_list
 
 

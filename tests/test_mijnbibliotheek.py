@@ -362,6 +362,36 @@ class TestGetAccounts:
         with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
             _accounts = mb.get_accounts()
 
+    def test_get_accounts_raises_incompatiblesource_error_on_unexpected_provider_structure(
+        self, requests_mock
+    ):
+        """Test that IncompatibleSourceError is raised when provider has neither 'region' nor 'library' key."""
+        mb = MijnBibliotheek("user", "pwd")
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
+                {
+                  "UnknownProvider": {
+                    "unexpected_key": [
+                      {
+                        "hasError": false,
+                        "id": "123456",
+                        "libraryName": "Some Library",
+                        "name": "John Doe"
+                      }
+                    ]
+                  }
+                }
+                """,
+        )
+
+        with pytest.raises(
+            IncompatibleSourceError,
+            match=r".*Unexpected membership structure for provider 'UnknownProvider'.*",
+        ):
+            _accounts = mb.get_accounts()
+
 
 @pytest.mark.real
 @pytest.mark.skipif(
