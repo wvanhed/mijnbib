@@ -405,11 +405,28 @@ class MijnBibliotheek:
 
 
 def _parse_api_memberships(memberships_data: dict) -> list[dict]:
+    """Parse memberships from the API response.
+
+    The API returns two different structures depending on the library system:
+    - StructureA (regio-bibs): {"region": { PersonId: [Membership] }}
+    - StructureB (traditional): {"library": [Membership]}
+    """
     membership_list = []
     for _region_name, provider in memberships_data.items():
-        region = provider["region"]
-        for _rijksregisternr, memberships in region.items():
-            membership_list.extend(memberships)
+        if "region" in provider:
+            # StructureA: {"region": { PersonId: [Membership] }}
+            region = provider["region"]
+            for _rijksregisternr, memberships in region.items():
+                membership_list.extend(memberships)
+        elif "library" in provider and isinstance(provider["library"], list):
+            # StructureB: {"library": [Membership]}
+            membership_list.extend(provider["library"])
+        else:
+            raise IncompatibleSourceError(
+                f"Unexpected membership structure for provider '{_region_name}'. "
+                "Expected 'region' or 'library' key.",
+                html_body=str(provider),
+            )
     return membership_list
 
 

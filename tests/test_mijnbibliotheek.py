@@ -223,6 +223,64 @@ class TestGetAccounts:
             open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/111222/te-betalen",
         )
 
+    def test_get_accounts_with_library_format(self, requests_mock):
+        """Test StructureB format: {"library": [Membership]} (non-regio-bibs).
+
+        See https://github.com/wvanhed/mijnbib/issues/7
+        """
+        mb = MijnBibliotheek("user", "pwd")
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/mijn-bibliotheek/aanmelden?destination=/mijn-bibliotheek/lidmaatschappen",
+            text="doesn't matter what is here",
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
+                {
+                  "SomeLibrary": {
+                    "library": [
+                      {
+                        "hasError": false,
+                        "id": "987654",
+                        "isBlocked": false,
+                        "isExpired": false,
+                        "libraryName": "Bibliotheek ABC",
+                        "library": "https://abc.bibliotheek.be",
+                        "name": "Alice Test"
+                      }
+                    ]
+                  }
+                }
+                """,
+        )
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/987654/activities",
+            text="""
+                    {
+                    "loanHistoryUrl": "/mijn-bibliotheek/lidmaatschappen/987654/leenhistoriek",
+                    "numberOfHolds": 1,
+                    "numberOfLoans": 3,
+                    "openAmount": "0,00"
+                    }
+                """,
+        )
+
+        accounts = mb.get_accounts()
+
+        assert len(accounts) == 1
+        assert accounts[0] == Account(
+            library_name="Bibliotheek ABC",
+            id="987654",
+            user="Alice Test",
+            open_amounts=0.0,
+            loans_count=3,
+            reservations_count=1,
+            loans_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/987654/uitleningen",
+            reservations_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/987654/reservaties",
+            open_amounts_url="https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen/987654/te-betalen",
+        )
+
     def test_get_accounts_raises_incompatiblesource_error_on_unexpected_json_for_memberships(
         self, requests_mock
     ):
@@ -302,6 +360,36 @@ class TestGetAccounts:
         )
 
         with pytest.raises(IncompatibleSourceError, match=r".*JSONDecodeError.*"):
+            _accounts = mb.get_accounts()
+
+    def test_get_accounts_raises_incompatiblesource_error_on_unexpected_provider_structure(
+        self, requests_mock
+    ):
+        """Test that IncompatibleSourceError is raised when provider has neither 'region' nor 'library' key."""
+        mb = MijnBibliotheek("user", "pwd")
+        mb._logged_in = True  # fake logged in
+        requests_mock.get(
+            "https://bibliotheek.be/api/my-library/memberships",
+            text="""
+                {
+                  "UnknownProvider": {
+                    "unexpected_key": [
+                      {
+                        "hasError": false,
+                        "id": "123456",
+                        "libraryName": "Some Library",
+                        "name": "John Doe"
+                      }
+                    ]
+                  }
+                }
+                """,
+        )
+
+        with pytest.raises(
+            IncompatibleSourceError,
+            match=r".*Unexpected membership structure for provider 'UnknownProvider'.*",
+        ):
             _accounts = mb.get_accounts()
 
 
