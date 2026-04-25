@@ -245,8 +245,8 @@ class TestGetAccounts:
                         "id": "987654",
                         "isBlocked": false,
                         "isExpired": false,
-                        "libraryName": "Bibliotheek Leuven",
-                        "library": "https://leuven.bibliotheek.be",
+                        "libraryName": "Bibliotheek ABC",
+                        "library": "https://abc.bibliotheek.be",
                         "name": "Alice Test"
                       }
                     ]
@@ -270,7 +270,7 @@ class TestGetAccounts:
 
         assert len(accounts) == 1
         assert accounts[0] == Account(
-            library_name="Bibliotheek Leuven",
+            library_name="Bibliotheek ABC",
             id="987654",
             user="Alice Test",
             open_amounts=0.0,
