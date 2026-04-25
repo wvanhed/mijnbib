@@ -418,7 +418,7 @@ def _parse_api_memberships(memberships_data: dict) -> list[dict]:
             region = provider["region"]
             for _rijksregisternr, memberships in region.items():
                 membership_list.extend(memberships)
-        elif "library" in provider:
+        elif "library" in provider and isinstance(provider["library"], list):
             # StructureB: {"library": [Membership]}
             membership_list.extend(provider["library"])
     return membership_list
