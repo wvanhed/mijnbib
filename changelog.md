@@ -2,6 +2,12 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.11.0 - 2026-04-25
+
+- fix: IncompatibleSourceError: KeyError: 'region' for some libraries which
+  return different memberships api response
+- impr: small code tweaks related to regexes and exception handling
+
 ## v0.10.5 - 2026-02-18
 
 - impr: drop support for python 3.8, to be able to use urllib3>=2.6.3
