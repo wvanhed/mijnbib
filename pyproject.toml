@@ -51,12 +51,14 @@ markers = [
 [tool.ruff]
 line-length = 95 # same as Black
 src = ["src"]    # consider folder as first-party import
+output-format = "concise"
 
 [tool.ruff.lint]
 extend-select = [
     "B",      # flake8-bugbear
     "D212",   # docstring first line should end with period
     "D415",   # multiline docstring should start at first line
+    "DTZ",    # datetime handling
     "FA",     # forgotten future annotations
     "I",      # isort
     "INP001", # missing __init__.py files

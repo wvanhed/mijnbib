@@ -4,7 +4,7 @@ import logging
 import re
 import urllib.parse
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from bs4 import BeautifulSoup
@@ -14,7 +14,6 @@ from mijnbib.models import ItemInfo, Loan, Reservation
 
 _log = logging.getLogger(__name__)
 
-DATE_FORMAT = "%d/%m/%Y"
 
 # CHEAT SHEET - BeautifulSoup (aka, things I always forget)
 #
@@ -24,6 +23,11 @@ DATE_FORMAT = "%d/%m/%Y"
 # .string       Typically returns the single string withing a tag, but can also
 #               return None, or the string from the single-containing tag. It's
 #               complicated, see also https://stackoverflow.com/a/25328374/50899
+
+
+def _parse_date(date_str: str) -> date:
+    """Parse a date string in DD/MM/YYYY format to a date object."""
+    return datetime.strptime(date_str, "%d/%m/%Y").date()  # noqa: DTZ007
 
 
 class Parser(ABC):
@@ -184,8 +188,8 @@ class LoansListPageParser(Parser):
             )
             from_ = fromto_div.find_all("span")[1].get_text().strip()  # type:ignore
             to_ = fromto_div.find_all("span")[3].get_text().strip()  # type:ignore
-            loan["loan_from"] = datetime.strptime(from_, DATE_FORMAT).date()
-            loan["loan_till"] = datetime.strptime(to_, DATE_FORMAT).date()
+            loan["loan_from"] = _parse_date(from_)
+            loan["loan_till"] = _parse_date(to_)
         except AttributeError:
             _log.warning("Unexpected html structure. Ignoring loan start and end date")
 
@@ -314,7 +318,7 @@ class ReservationsPageParser(Parser):
                     .replace("Aangevraagd op ", "")
                     .strip()
                 )
-                hold["request_on"] = datetime.strptime(hold["request_on"], DATE_FORMAT).date()
+                hold["request_on"] = _parse_date(hold["request_on"])
             except AttributeError:
                 _log.warning("Unexpected html structure. Ignoring hold request date")
 
@@ -325,7 +329,7 @@ class ReservationsPageParser(Parser):
                     .replace("Aanvraag geldig tot ", "")
                     .strip()
                 )
-                hold["valid_till"] = datetime.strptime(hold["valid_till"], DATE_FORMAT).date()
+                hold["valid_till"] = _parse_date(hold["valid_till"])
             except AttributeError:
                 pass  # once available, date not present anymore
 
@@ -364,7 +368,7 @@ class ReservationsPageParser(Parser):
                 )
                 if hold["available"] is True:
                     date_info_end = hold_div.find("strong").get_text().strip()
-                    hold["endavailable"] = datetime.strptime(date_info_end, DATE_FORMAT).date()
+                    hold["endavailable"] = _parse_date(date_info_end)
             except AttributeError:
                 _log.warning("Unexpected html structure. Ignoring hold availability.")
 
@@ -454,7 +458,7 @@ class ExtendResponsePageParser(Parser):
                 count = len(lis)
                 for li in lis:
                     until = li.get_text().rsplit(" ", 1)[-1].strip(".")
-                    until = datetime.strptime(until, DATE_FORMAT).date()
+                    until = _parse_date(until)
                     extension_info.append({"title": li.em.get_text(), "until": until})  # type:ignore
             if lis and "Er ging iets fout bij het verlengen" in lis[0].get_text():
                 # Probably, messages could be mix of success and failures. However, unclear.
