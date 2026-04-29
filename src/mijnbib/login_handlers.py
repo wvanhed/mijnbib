@@ -11,7 +11,15 @@ _log = logging.getLogger(__name__)
 
 
 class LoginByOAuth:
-    def __init__(self, username, password, url: str, ses: requests.Session):
+    """Handles authentication with bibliotheek.be's custom auth flow.
+
+    Note: Despite using OAuth-like parameter names (oauth_token, oauth_verifier),
+    this is NOT OAuth 1.0a. The server uses these as request identifiers for a
+    credential exchange that results in session cookies. No token signatures
+    or secrets are involved.
+    """
+
+    def __init__(self, username: str, password: str, url: str, ses: requests.Session):
         self._username = username
         self._pwd = password
         self._url = url
@@ -33,6 +41,7 @@ class LoginByOAuth:
         #     GET   https://bibliotheek.be/my-library/login/callback           ?oauth_token=...&oauth_verifier=...&uilang=nl
         #           then, via 302 auto-redirect (from destination param)
         #     GET   https://bibliotheek.be/mijn-bibliotheek/lidmaatschappen
+        # (3) Session cookies are now authenticated, we can access protected pages
 
         _log.debug("(1) Opening login page ... ")
         response = self._ses.get(self._url)
