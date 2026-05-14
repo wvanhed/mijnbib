@@ -47,9 +47,9 @@ For a more readable version, use `pprint()`:
 ```python
 import pprint
 pprint.pprint([l for l in loans])
-```
 
-```text
+# outputs:
+
 [Loan(title='Erebus',
   loan_from=datetime.date(2023, 11, 25),
   loan_till=datetime.date(2023, 12, 23),
