@@ -56,7 +56,15 @@ For a more readable version, use `pprint()`:
       account_id='123'
       )]
 
-For more examples, see the code in the `examples` folder.
+Below is a code snippet showing the main functionality:
+
+    accounts = mb.get_accounts()
+    acc_id = accounts[0].id
+    loans = mb.get_loans(acc_id)
+    reservations = mb.get_reservations(acc_id)
+    all_info = mb.get_all_info(acc_id)
+
+For more examples (including extending loans), see the code in the `examples` folder.
 It also uses `asdict` for conversion to a dictionary.
 
 ## Command-line interface
@@ -102,7 +110,13 @@ The `--help` option shows all available options
 
 ## Notes
 
-- **Error handling**. Depending on the application, it may be advisable to
+- **Data models** - Check [models.py](src/mijnbib/models.py) for details
+  on each of the available objects. Note that `Loan` objects do not have a
+  unique loan identifier; they can be identified - across extensions - by the
+  combination of the library item (the `id` property), the start date of the
+  loan (`loan_from` property), and the account (`account_id`).
+  
+- **Error handling** - Depending on the application, it may be advisable to
   provide error handling. The `errors.py` file contains the list of
   Mijnbib-specific exceptions. The docstrings of the public methods contain
   the errors that can occur. For example:
@@ -134,9 +148,10 @@ the bibliotheek.be website in a similar way.
 
 ## Development
 
-This project uses `uv`. If needed, install first via, e.g.
+This project uses the following tools:
 
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+- `uv` (install via `curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- `make` (for Windows, see e.g. <https://stackoverflow.com/a/32127632/50899>)
 
 To install all dependencies for development:
 
@@ -150,33 +165,12 @@ Note: This works because mijnbib is installed as a cli script via the
 `project.scripts` entry in `pyproject.toml`, with `uv run` taking care of
 activating the virtual environment before running the command.
 
-You need `make` as well. For installation on Windows, see the options at
-<https://stackoverflow.com/a/32127632/50899>
-
 Running the tests, applying linting and code formatting can be done via:
 
-    make test
-    make lint
-    make format
+    make dev    # fast tests, linting, formatting
+    make all    # the above + more (see Makefile)
 
-To work around the challenge of testing a web scraper, the following *snapshot
-testing* approach can be used to get some confidence when applying refactoring:
-
-1. Create a file `mijnbib.ini` in the project root folder, and make it contain
-   a section `[DEFAULT]` holding the following parameters: `username`,
-   `password` and `account_id`
-2. Run `python tests/save_testref.py` to capture and store the current output
-   (a couple of files will be created)
-3. Perform refactoring as needed
-4. Run `pytest tests/tst_mijnbibliotheek.py` (note: it's `pytest` here!) to check
-   if the output still matches the earlier captured output
-
-Creating a distribution archive:
-
-    make clean
-    make build
-
-## Publishing
+Publishing:
 
 1. Update `changelog.md` (do not commit)
 2. Do:
@@ -184,7 +178,6 @@ Creating a distribution archive:
         make all
         uvx uv-ship next patch      # (updates pyproject.toml and uv.lock,
                                     #  creates tag and pushes to remote)
-        make clean build
         make publish
 
 3. Create release in github, starting from tag
