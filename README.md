@@ -16,53 +16,65 @@ A list of supported libraries can be found in [libraries.md](./libraries.md).
 
 Install via:
 
-    pip install mijnbib
+```bash
+pip install mijnbib
+```
 
 Or, to force an upgrade:
 
-    pip install --upgrade mijnbib
+```bash
+pip install --upgrade mijnbib
+```
 
 ## Usage
 
 For example, retrieving your borrowed items can be done as follows (after installation):
 
-    from mijnbib import MijnBibliotheek
+```python
+from mijnbib import MijnBibliotheek
 
-    username = "johndoe"
-    password = "12345678"
-    account_id = "123"  # see the number in the URL, or via mb.get_accounts()
+username = "johndoe"
+password = "12345678"
+account_id = "123"  # see the number in the URL, or via mb.get_accounts()
 
-    mb = MijnBibliotheek(username, password)
-    loans = mb.get_loans(account_id)
-    print(loans)
+mb = MijnBibliotheek(username, password)
+loans = mb.get_loans(account_id)
+print(loans)
+```
 
 For a more readable version, use `pprint()`:
 
-    import pprint
-    pprint.pprint([l for l in loans])
+```python
+import pprint
+pprint.pprint([l for l in loans])
+```
 
-    [Loan(title='Erebus',
-      loan_from=datetime.date(2023, 11, 25),
-      loan_till=datetime.date(2023, 12, 23),
-      author='Palin, Michael',
-      type='Boek',
-      extendable=True,
-      extend_url='https://gent.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123/uitleningen/verlengen?loan-ids=789',
-      extend_id='789',
-      branchname='Gent Hoofdbibliotheek',
-      id='456789',
-      url='https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789',
-      cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
-      account_id='123'
-      )]
+```text
+[Loan(title='Erebus',
+  loan_from=datetime.date(2023, 11, 25),
+  loan_till=datetime.date(2023, 12, 23),
+  author='Palin, Michael',
+  type='Boek',
+  extendable=True,
+  extend_url='https://gent.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123/uitleningen/verlengen?loan-ids=789',
+  extend_id='789',
+  branchname='Gent Hoofdbibliotheek',
+  id='456789',
+  url='https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789',
+  cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
+  account_id='123'
+  )]
+```
 
 Below is a code snippet showing the main functionality:
 
-    accounts = mb.get_accounts()
-    acc_id = accounts[0].id
-    loans = mb.get_loans(acc_id)
-    reservations = mb.get_reservations(acc_id)
-    all_info = mb.get_all_info(acc_id)
+```python
+accounts = mb.get_accounts()
+acc_id = accounts[0].id
+loans = mb.get_loans(acc_id)
+reservations = mb.get_reservations(acc_id)
+all_info = mb.get_all_info(acc_id)
+```
 
 For more examples (including extending loans), see the code in the `examples` folder.
 It also uses `asdict` for conversion to a dictionary.
@@ -71,42 +83,48 @@ It also uses `asdict` for conversion to a dictionary.
 
 You can call the module from the command-line as follows:
 
-    python -m mijnbib loans
-    python -m mijnbib --version
+```bash
+python -m mijnbib loans
+python -m mijnbib --version
+```
 
 Or, directly via the CLI command:
 
-    mijnbib loans
+```bash
+mijnbib loans
+```
 
 The `--help` option shows all available options
 
-    $ mijnbib --help
-    usage: mijnbib [-h] [-V] [-v] {all,accounts,loans,reservations,login} ...
+```text
+$ mijnbib --help
+usage: mijnbib [-h] [-V] [-v] {all,accounts,loans,reservations,login} ...
 
-    Interact with bibliotheek.be website, e.g. to retrieve loans, reservations
-    or accounts.
+Interact with bibliotheek.be website, e.g. to retrieve loans, reservations
+or accounts.
 
-    Specify the required authentication parameters (username, password, ...) 
-    as a parameter of the subcommando. See the help of a subcommando for all 
-    parameters, e.g. `mijnbib --help all`
-    More convenient is creating a `mijnbib.ini` file containing the parameters:
-    [DEFAULT]
-    username = john
-    password = 123456
-    accountid = 456
+Specify the required authentication parameters (username, password, ...) 
+as a parameter of the subcommando. See the help of a subcommando for all 
+parameters, e.g. `mijnbib --help all`
+More convenient is creating a `mijnbib.ini` file containing the parameters:
+[DEFAULT]
+username = john
+password = 123456
+accountid = 456
 
-    positional arguments:
-    {all,accounts,loans,reservations,login}
-        all                 retrieve all information for all accounts
-        accounts            retrieve accounts
-        loans               retrieve loans for account id
-        reservations        retrieve reservations for account id
-        login               just log in, and report if success or not
+positional arguments:
+{all,accounts,loans,reservations,login}
+    all                 retrieve all information for all accounts
+    accounts            retrieve accounts
+    loans               retrieve loans for account id
+    reservations        retrieve reservations for account id
+    login               just log in, and report if success or not
 
-    options:
-    -h, --help            show this help message and exit
-    -V, --version         show program's version number and exit
-    -v, --verbose         show debug logging
+options:
+-h, --help            show this help message and exit
+-V, --version         show program's version number and exit
+-v, --verbose         show debug logging
+```
 
 ## Notes
 
@@ -121,15 +139,17 @@ The `--help` option shows all available options
   Mijnbib-specific exceptions. The docstrings of the public methods contain
   the errors that can occur. For example:
 
-        from mijnbib import AuthenticationError, MijnbibError, MijnBibliotheek
+  ```python
+  from mijnbib import AuthenticationError, MijnbibError, MijnBibliotheek
 
-        mb = MijnBibliotheek(username, password)
-        try:
-            accounts = mb.get_accounts()
-        except AuthenticationError as e:
-            print(e)  # wrong credentials
-        except MijnbibError as e:
-            print(e)  # any other custom mijnbib error
+  mb = MijnBibliotheek(username, password)
+  try:
+      accounts = mb.get_accounts()
+  except AuthenticationError as e:
+      print(e)  # wrong credentials
+  except MijnbibError as e:
+      print(e)  # any other custom mijnbib error
+  ```
 
 - **Compatibility with bibliotheek.be** - This Python API retrieves its data
   via web scraping of the bibliotheek.be website.
@@ -155,11 +175,15 @@ This project uses the following tools:
 
 To install all dependencies for development:
 
-    make init
+```bash
+make init
+```
 
 If all is good, the following should print `mijnbib <version>`:
 
-    uv run mijnbib --version
+```bash
+uv run mijnbib --version
+```
 
 Note: This works because mijnbib is installed as a cli script via the
 `project.scripts` entry in `pyproject.toml`, with `uv run` taking care of
@@ -167,17 +191,21 @@ activating the virtual environment before running the command.
 
 Running the tests, applying linting and code formatting can be done via:
 
-    make dev    # fast tests, linting, formatting
-    make all    # the above + more (see Makefile)
+```bash
+make dev    # fast tests, linting, formatting
+make all    # the above + more (see Makefile)
+```
 
 Publishing:
 
 1. Update `changelog.md` (do not commit)
 2. Do:
 
-        make all
-        uvx uv-ship next patch      # (updates pyproject.toml and uv.lock,
-                                    #  creates tag and pushes to remote)
-        make publish
+   ```bash
+   make all
+   uvx uv-ship next patch      # (updates pyproject.toml and uv.lock,
+                               #  creates tag and pushes to remote)
+   make publish
+   ```
 
 3. Create release in github, starting from tag
