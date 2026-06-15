@@ -9,12 +9,11 @@ from pathlib import Path
 import pytest
 
 from mijnbib import MijnBibliotheek
+from mijnbib.const import CONFIG_FILE
 from mijnbib.errors import AuthenticationError, IncompatibleSourceError, ItemAccessError
 from mijnbib.login_handlers import LoginByOAuth
 from mijnbib.mijnbibliotheek import get_item_info
 from mijnbib.models import Account, Loan, Reservation
-
-CONFIG_FILE = "mijnbib.ini"
 
 
 @pytest.fixture

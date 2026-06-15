@@ -13,8 +13,7 @@ import pprint as pp
 import sys
 
 from mijnbib import AuthenticationError, MijnBibliotheek, __version__
-
-CONFIG_FILE = "mijnbib.ini"
+from mijnbib.const import CONFIG_FILE
 
 
 def _do_login(args: argparse.Namespace):
