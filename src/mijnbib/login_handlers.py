@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import requests
 
-from mijnbib.errors import AuthenticationError
+from mijnbib.errors import AuthenticationError, UnexpectedLoginRedirectError
 
 _log = logging.getLogger(__name__)
 
@@ -28,7 +28,9 @@ class LoginByOAuth:
     def login(self) -> requests.Session:
         response = self._log_in()
         html = response.text if response is not None else ""
-        _validate_logged_in(html)  # raises AuthenticationError if not ok
+        status_code = response.status_code if response is not None else None
+        url = response.url if response is not None else None
+        _validate_logged_in(html, status_code=status_code, url=url)  # raises if not ok
         return self._ses
 
     def _log_in(self) -> requests.Response:
@@ -58,6 +60,22 @@ class LoginByOAuth:
             _log.debug("Looks like we are still or already logged in. Skip auth/login call")
             return response
 
+        if "oauth_token" not in qp:
+            _log.warning(
+                "Login page did not redirect into the expected OAuth flow "
+                f"(no oauth_token in response URL: {auth_url}). This usually means the "
+                "request was intercepted before reaching real login (e.g. bot/IP-based "
+                "blocking), rather than a credentials problem."
+            )
+            raise UnexpectedLoginRedirectError(
+                "Did not receive expected OAuth redirect from login page "
+                f"(no oauth_token in response URL, status {response.status_code}) "
+                "- possible bot/IP blocking",
+                html_body=response.text,
+                status_code=response.status_code,
+                url=auth_url,
+            )
+
         _log.debug("(2) Doing login call ... ")
         data = {
             "hint": qp.get("hint"),  # "login"
@@ -71,7 +89,9 @@ class LoginByOAuth:
         return response
 
 
-def _validate_logged_in(html: str) -> None:
+def _validate_logged_in(
+    html: str, status_code: int | None = None, url: str | None = None
+) -> None:
     """Raise AuthenticationError if login failed."""
     _log.debug("Checking if login is successful ...")
     if "Profiel" not in html:
@@ -80,8 +100,13 @@ def _validate_logged_in(html: str) -> None:
             or "akkoord met de privacyverklaring" in html
         ):
             raise AuthenticationError(
-                "Login not accepted (likely need to accept privacy statement again)"
+                "Login not accepted (likely need to accept privacy statement again)",
+                html_body=html,
+                status_code=status_code,
+                url=url,
             )
         else:
-            raise AuthenticationError("Login not accepted")
+            raise AuthenticationError(
+                "Login not accepted", html_body=html, status_code=status_code, url=url
+            )
     _log.debug("Login was successful")

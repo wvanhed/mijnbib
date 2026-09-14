@@ -17,6 +17,7 @@ from .errors import (
     ItemAccessError,
     MijnbibError,
     TemporarySiteError,
+    UnexpectedLoginRedirectError,
 )
 from .mijnbibliotheek import MijnBibliotheek, get_item_info
 from .models import Account, Loan, Reservation

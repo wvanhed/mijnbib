@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## v0.11.1 - xxxx-xx-xx
+
+- impr: handle login error where redirection doesn't happen
+
 ## v0.11.0 - 2026-04-25
 
 - fix: IncompatibleSourceError: KeyError: 'region' for some libraries which
