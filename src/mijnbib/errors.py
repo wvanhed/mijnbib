@@ -31,6 +31,15 @@ class AuthenticationError(MijnbibError):
         self.url = url
 
 
+class PrivacyStatementRequiresApprovalError(AuthenticationError):
+    """Raised when login failed because the privacy statement was updated.
+
+    The site requires re-accepting an updated privacy statement before login
+    can succeed again. It's still a subclass of `AuthenticationError` so
+    existing `except AuthenticationError` handling keeps working.
+    """
+
+
 class UnexpectedLoginRedirectError(AuthenticationError):
     """Raised when the login page did not redirect into the expected OAuth flow.
 

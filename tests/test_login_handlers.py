@@ -3,7 +3,11 @@ from __future__ import annotations
 import pytest
 import requests
 
-from mijnbib.errors import AuthenticationError, UnexpectedLoginRedirectError
+from mijnbib.errors import (
+    AuthenticationError,
+    PrivacyStatementRequiresApprovalError,
+    UnexpectedLoginRedirectError,
+)
 from mijnbib.login_handlers import LoginByOAuth
 
 LOGIN_URL = "https://bibliotheek.be/mijn-bibliotheek/aanmelden?destination=/mijn-bibliotheek/lidmaatschappen"
@@ -57,6 +61,38 @@ def test_login_raises_authenticationerror_when_oauth_flow_completes_but_rejected
     assert e.value.status_code == 200
     assert e.value.url == LOGIN_POST_URL
     assert e.value.html_body == "rejected, back to login form"
+
+
+def test_login_raises_privacystatementrequiresapprovalerror_when_privacy_prompt_shown(
+    requests_mock,
+):
+    """If the oauth flow completes but the response shows the privacy statement
+    prompt instead of a profile page, that's a distinct, actionable rejection -
+    not a plain wrong-credentials AuthenticationError.
+    """
+    requests_mock.get(
+        LOGIN_URL,
+        status_code=302,
+        headers={"location": AUTHORIZE_URL},
+    )
+    requests_mock.get(AUTHORIZE_URL, status_code=200, text="irrelevant authorize page body")
+    requests_mock.post(
+        LOGIN_POST_URL,
+        status_code=200,
+        text="de privacyverklaring is gewijzigd, please accept again",
+    )
+
+    handler = LoginByOAuth("user", "pwd", LOGIN_URL, requests.Session())
+
+    with pytest.raises(
+        PrivacyStatementRequiresApprovalError, match=r".*privacy statement.*"
+    ) as e:
+        handler.login()
+
+    assert isinstance(e.value, AuthenticationError)
+    assert e.value.status_code == 200
+    assert e.value.url == LOGIN_POST_URL
+    assert e.value.html_body == "de privacyverklaring is gewijzigd, please accept again"
 
 
 def test_login_succeeds_when_oauth_flow_completes_and_profile_found(requests_mock):

@@ -5,6 +5,7 @@ new: new feature /  impr: improvement /  fix: bug fix
 ## v0.11.1 - xxxx-xx-xx
 
 - impr: handle login error where redirection doesn't happen
+- impr: raise PrivacyStatementRequiresApprovalError instead of AuthenticationError
 
 ## v0.11.0 - 2026-04-25
 

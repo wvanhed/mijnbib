@@ -5,7 +5,11 @@ from urllib.parse import parse_qs, urlsplit
 
 import requests
 
-from mijnbib.errors import AuthenticationError, UnexpectedLoginRedirectError
+from mijnbib.errors import (
+    AuthenticationError,
+    PrivacyStatementRequiresApprovalError,
+    UnexpectedLoginRedirectError,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -99,7 +103,7 @@ def _validate_logged_in(
             "privacyverklaring is gewijzigd" in html
             or "akkoord met de privacyverklaring" in html
         ):
-            raise AuthenticationError(
+            raise PrivacyStatementRequiresApprovalError(
                 "Login not accepted (likely need to accept privacy statement again)",
                 html_body=html,
                 status_code=status_code,

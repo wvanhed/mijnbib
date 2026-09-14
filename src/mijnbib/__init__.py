@@ -16,6 +16,7 @@ from .errors import (
     IncompatibleSourceError,
     ItemAccessError,
     MijnbibError,
+    PrivacyStatementRequiresApprovalError,
     TemporarySiteError,
     UnexpectedLoginRedirectError,
 )

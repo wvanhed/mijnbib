@@ -16,6 +16,7 @@ def test_mijnbib_available_imports():
             "Account",
             "ItemAccessError",
             "AuthenticationError",
+            "PrivacyStatementRequiresApprovalError",
             "UnexpectedLoginRedirectError",
             "ExtendLoanError",
             "IncompatibleSourceError",
