@@ -2,10 +2,12 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## v0.11.1 - xxxx-xx-xx
+## v0.11.1 - 2026-09-14
 
 - impr: handle login error where redirection doesn't happen
 - impr: raise PrivacyStatementRequiresApprovalError instead of AuthenticationError
+- impr: various refactors and documentation improvements
+- impr: upgrade dependencies (uv.lock)
 
 ## v0.11.0 - 2026-04-25
 
@@ -20,7 +22,7 @@ new: new feature /  impr: improvement /  fix: bug fix
 ## v0.10.4 - 2026-02-13
 
 - impr: add python 3.14 support to testing matrix
-- impr: upgrade dependecies (uv.lock)
+- impr: upgrade dependencies (uv.lock)
 
 ## v0.10.3 - 2026-01-05
 
