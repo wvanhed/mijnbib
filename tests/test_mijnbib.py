@@ -35,10 +35,10 @@ def test_mijnbib_available_imports():
 
 
 def test_cli():
-    cproc = subprocess.run(["mijnbib", "--version"], capture_output=True, text=True)  # noqa: S603, S607
+    cproc = subprocess.run(["mijnbib", "--version"], capture_output=True, text=True)  # noqa: S603, S607, PLW1510
     ver = importlib.metadata.version("mijnbib")  # from pyproject.toml file
     assert f"mijnbib {ver}" in cproc.stdout
     assert cproc.returncode == 0
 
-    cproc = subprocess.run(["mijnbib", "--help"])  # noqa: S603, S607
+    cproc = subprocess.run(["mijnbib", "--help"])  # noqa: S603, S607, PLW1510
     assert cproc.returncode == 0

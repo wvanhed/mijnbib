@@ -326,7 +326,7 @@ class MijnBibliotheek:
                 # even if 500 response
                 raise ExtendLoanError(f"Could not extend loans using url: {extend_url}") from e
             else:
-                raise e
+                raise
         finally:
             self._ses.headers.pop("Referer")  # clean up
 
@@ -348,7 +348,7 @@ class MijnBibliotheek:
                 success = False
             # Parse all loans (includes extended ones)
             loans = self._loans_page_parser.parse(html_string, self.BASE_URL, account_id)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 (deliberately broad, see comment above)
             _log.warning(f"Could not parse loan extending result. Error: {e}")
             loans = None
             details = {}
@@ -444,5 +444,5 @@ def get_item_info(url: str) -> ItemInfo:
     except requests.HTTPError as e:
         if e.response.status_code == 404:
             raise ItemAccessError(f"Item detail page not found (404 error) at: {url}") from e
-        raise e
+        raise
     return ItemDetailParser().parse(html=response.text, url=url)

@@ -72,7 +72,9 @@ extend-select = [
     "W",      # warning
 ]
 ignore = [
+    "C405", # unnecessary-literal-set
     "N818",   # error suffix in exception names
+    "PERF102", # dict-operator
     "RUF100", # unused noqa directive
     "SIM105", # suppressible-exception (contextlib usage)
     "SIM910", # dict-get-with-none-default

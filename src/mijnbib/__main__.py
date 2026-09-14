@@ -94,7 +94,7 @@ def main():
         "-V",
         "--version",
         action="version",
-        version="%(prog)s {version}".format(version=__version__),
+        version=f"%(prog)s {__version__}",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="show debug logging")
     subparsers = parser.add_subparsers(required=True)

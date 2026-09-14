@@ -46,24 +46,28 @@ For a more readable version, use `pprint()`:
 
 ```python
 import pprint
+
 pprint.pprint([l for l in loans])
 
 # outputs:
 
-[Loan(title='Erebus',
-  loan_from=datetime.date(2023, 11, 25),
-  loan_till=datetime.date(2023, 12, 23),
-  author='Palin, Michael',
-  type='Boek',
-  extendable=True,
-  extend_url='https://gent.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123/uitleningen/verlengen?loan-ids=789',
-  extend_id='789',
-  branchname='Gent Hoofdbibliotheek',
-  id='456789',
-  url='https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789',
-  cover_url='https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium',
-  account_id='123'
-  )]
+[
+    Loan(
+        title="Erebus",
+        loan_from=datetime.date(2023, 11, 25),
+        loan_till=datetime.date(2023, 12, 23),
+        author="Palin, Michael",
+        type="Boek",
+        extendable=True,
+        extend_url="https://gent.bibliotheek.be/mijn-bibliotheek/lidmaatschappen/123/uitleningen/verlengen?loan-ids=789",
+        extend_id="789",
+        branchname="Gent Hoofdbibliotheek",
+        id="456789",
+        url="https://gent.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C456789",
+        cover_url="https://webservices.bibliotheek.be/index.php?func=cover&ISBN=9789000359325&VLACCnr=10157217&CDR=&EAN=&ISMN=&EBS=&coversize=medium",
+        account_id="123",
+    )
+]
 ```
 
 Below is a code snippet showing the main functionality:
