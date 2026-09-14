@@ -209,7 +209,8 @@ Publishing:
    make all
    uvx uv-ship next patch      # (updates pyproject.toml and uv.lock,
                                #  creates tag and pushes to remote)
-   make publish
+   make publish                # always cleans + rebuilds dist/ first,
+                               # so it can't upload stale/wrong-version artifacts
    ```
 
 3. Create release in github, starting from tag

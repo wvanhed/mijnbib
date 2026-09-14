@@ -41,7 +41,9 @@ build:
 	uv build
 
 # (uv publish is still experimental, so we still use twine)
-publish:
+# Always rebuilds first so dist/ can't contain stale artifacts from a
+# previous (already-published) version.
+publish: clean build
 	# uv run --with twine --with setuptools --no-project twine upload --repository testpypi dist/*
 	uv run --with twine --with setuptools --no-project twine upload dist/*
 
