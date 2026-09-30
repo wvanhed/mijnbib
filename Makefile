@@ -11,7 +11,7 @@ clean:
 	rm -rf .venv
 
 mdlint:
-	uvx pymarkdownlnt scan .
+	uvx pymarkdownlnt scan --exclude CLAUDE.md .
 
 lint:
 	uv run ruff check .
