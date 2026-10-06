@@ -37,7 +37,7 @@ Homepage = "https://github.com/wvanhed/mijnbib"
 Changelog = "https://github.com/wvanhed/mijnbib/blob/main/changelog.md"
 
 [project.scripts]
-mijnbib = "mijnbib.__main__:main"
+mijnbib = "mijnbib.cli:main"
 
 
 [tool.pytest.ini_options]

@@ -85,6 +85,9 @@ It also uses `asdict` for conversion to a dictionary.
 
 ## Command-line interface
 
+Warning: the cli is experimental and may change without warning. Do not base any
+automation on it; use the Python API instead.
+
 You can call the module from the command-line as follows:
 
 ```bash
