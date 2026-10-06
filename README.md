@@ -167,8 +167,8 @@ options:
 
 ## Alternatives
 
-The Home Assistant plugin <https://github.com/myTselection/bibliotheek_be> scrapes
-the bibliotheek.be website in a similar way.
+The Home Assistant plugin <https://github.com/myTselectionPublic/bibliotheek_be>
+scrapes the bibliotheek.be website in a similar way.
 
 ## Development
 
