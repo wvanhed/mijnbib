@@ -30,6 +30,20 @@ def _parse_date(date_str: str) -> date:
     return datetime.strptime(date_str, "%d/%m/%Y").date()  # noqa: DTZ007
 
 
+def _item_id_from_url(url: str) -> str:
+    """Return the item id, i.e. the last part of the `extid` query parameter.
+
+    Since the id is only used to differentiate between titles, the last id-like part
+    is sufficient. If there is no `extid` parameter, the whole url is returned.
+
+    >>> _item_id_from_url("https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1144255")
+    '1144255'
+    """
+    extid = urllib.parse.parse_qs(urllib.parse.urlsplit(url).query).get("extid", [url])[0]
+    # parse_qs already url-decoded the value, so "%7C" (url-encoded "|") is now "|"
+    return extid.split("|")[-1]
+
+
 class Parser(ABC):
     @abstractmethod
     def parse(self, html: str, *args, **kwargs) -> Any:
@@ -152,9 +166,7 @@ class LoansListPageParser(Parser):
             ).a
             loan["title"] = loan_a.get_text().strip()
             loan["url"] = loan_a["href"]
-            # Since id is only used to differentiate between titles, use last id-like part from url
-            # URL looks like 'https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1144255'
-            loan["id"] = loan_a["href"].encode("utf-8").split(b"%7C")[-1].decode("utf-8")
+            loan["id"] = _item_id_from_url(loan_a["href"])
         except AttributeError:
             _log.warning("Unexpected html structure. Ignoring loan title, url and id")
 

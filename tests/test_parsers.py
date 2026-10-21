@@ -8,7 +8,31 @@ from mijnbib.parsers import (
     ItemDetailParser,
     LoansListPageParser,
     ReservationsPageParser,
+    _item_id_from_url,
 )
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        # pipes url-encoded, as currently on the site
+        (
+            "https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C1144255",
+            "1144255",
+        ),
+        # pipes not url-encoded
+        (
+            "https://city.bibliotheek.be/resolver.ashx?extid=|wise-oostvlaanderen|1144255",
+            "1144255",
+        ),
+        # extid among other query parameters
+        ("https://city.bibliotheek.be/resolver.ashx?x=1&extid=%7Cwise%7C42&y=2", "42"),
+        # no extid parameter: fall back to the url itself
+        ("https://city.bibliotheek.be/item/42", "https://city.bibliotheek.be/item/42"),
+    ],
+)
+def test_item_id_from_url(url, expected):
+    assert _item_id_from_url(url) == expected
 
 
 class TestLoansListPageParser:
