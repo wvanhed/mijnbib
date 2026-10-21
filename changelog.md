@@ -2,6 +2,10 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## [unreleased]
+
+- impr: cli: more robust handling of missing parameters and error reporting
+
 ## v0.11.1 - 2026-09-14
 
 - impr: handle login error where redirection doesn't happen
