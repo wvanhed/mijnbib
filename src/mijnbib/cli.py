@@ -8,7 +8,6 @@ import argparse
 import configparser
 import logging
 import pprint as pp
-import sys
 
 from mijnbib import AuthenticationError, MijnBibliotheek, __version__
 from mijnbib.const import CONFIG_FILE
@@ -131,11 +130,11 @@ def main():
     required = ["username", "password"]
     for r in required:
         if getattr(args, r) is None:
-            print(
+            # prints usage + message to stderr and exits with status 2
+            parser.error(
                 f"Parameter '{r}' is required. "
                 f"Either specify as an argument, or in file '{CONFIG_FILE}'"
             )
-            sys.exit(-1)
 
     # call the appropriate subcommand
     args.func(args)
