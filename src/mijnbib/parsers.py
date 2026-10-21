@@ -178,7 +178,8 @@ class LoansListPageParser(Parser):
             loan["cover_url"] = loan_div.find(
                 "img", class_="my-library-user-library-account-loans__loan-cover-img"
             )["src"]
-        except AttributeError:
+        except (TypeError, KeyError):
+            # TypeError: no img (find returned None), KeyError: img without src
             loan["cover_url"] = ""
 
         try:
@@ -190,7 +191,8 @@ class LoansListPageParser(Parser):
             to_ = fromto_div.find_all("span")[3].get_text().strip()  # type:ignore
             loan["loan_from"] = _parse_date(from_)
             loan["loan_till"] = _parse_date(to_)
-        except AttributeError:
+        except (AttributeError, IndexError, ValueError):
+            # IndexError: fewer spans than expected, ValueError: unexpected date format
             _log.warning("Unexpected html structure. Ignoring loan start and end date")
 
         try:
@@ -312,26 +314,30 @@ class ReservationsPageParser(Parser):
                 pass  # some holds don't have a type
 
             try:
-                hold["request_on"] = (
+                request_on = (
                     child.find("p", string=re.compile(r"Aangevraagd op"))
                     .get_text()
                     .replace("Aangevraagd op ", "")
                     .strip()
                 )
-                hold["request_on"] = _parse_date(hold["request_on"])
-            except AttributeError:
+                hold["request_on"] = _parse_date(request_on)
+            except (AttributeError, ValueError):
                 _log.warning("Unexpected html structure. Ignoring hold request date")
 
             try:
-                hold["valid_till"] = (
+                valid_till = (
                     child.find("p", string=re.compile(r"Aanvraag geldig tot"))
                     .get_text()
                     .replace("Aanvraag geldig tot ", "")
                     .strip()
                 )
-                hold["valid_till"] = _parse_date(hold["valid_till"])
             except AttributeError:
                 pass  # once available, date not present anymore
+            else:
+                try:
+                    hold["valid_till"] = _parse_date(valid_till)
+                except ValueError:
+                    _log.warning("Unexpected date format. Ignoring hold valid till date")
 
             try:
                 hold_a = child.find("h2", class_="catalog-item-small-teaser__title").a
@@ -369,7 +375,7 @@ class ReservationsPageParser(Parser):
                 if hold["available"] is True:
                     date_info_end = hold_div.find("strong").get_text().strip()
                     hold["endavailable"] = _parse_date(date_info_end)
-            except AttributeError:
+            except (AttributeError, ValueError):
                 _log.warning("Unexpected html structure. Ignoring hold availability.")
 
             reservation = Reservation(
@@ -551,7 +557,8 @@ class ItemDetailParser(Parser):
         """Returns the cover link, or "" if none."""
         try:
             cover_link = soup.find("div", class_="catalog-item-full__image").find("img")["src"]
-        except AttributeError:
+        except (AttributeError, TypeError, KeyError):
+            # no image div, no img in it, or img without src
             cover_link = ""
         return cover_link
 

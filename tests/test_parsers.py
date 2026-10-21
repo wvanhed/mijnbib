@@ -3,6 +3,7 @@ import datetime
 from mijnbib.models import Loan
 from mijnbib.parsers import (
     ExtendResponsePageParser,
+    ItemDetailParser,
     LoansListPageParser,
     ReservationsPageParser,
 )
@@ -87,12 +88,109 @@ class TestLoansListPageParser:
             )
         ]
 
+    @staticmethod
+    def _loans_page(cover_html: str, from_to_html: str) -> str:
+        return f"""
+            <div class="my-library-user-library-account-loans__loan-wrapper">
+              <h2>Gent Hoofdbibliotheek</h2>
+              <div class="card my-library-user-library-account-loans__loan">
+                {cover_html}
+                <h3 class="my-library-user-library-account-loans__loan-title card--title"><a
+                    href="https://city.bibliotheek.be/resolver.ashx?extid=%7Cwise-oostvlaanderen%7C4690970">Titel</a></h3>
+                <div class="my-library-user-library-account-loans__loan-from-to card--from-to">
+                  {from_to_html}
+                </div>
+              </div>
+            </div>
+        """
+
+    _COVER = (
+        '<img class="my-library-user-library-account-loans__loan-cover-img" src="cover.jpg" />'
+    )
+    _FROM_TO = """
+        <div><span>Van</span><span>15/01/2025</span></div>
+        <div><span>Tot en met</span><span>12/02/2025</span></div>
+    """
+
+    def _parse_single_loan(self, html_string: str) -> Loan:
+        loans = LoansListPageParser().parse(
+            html=html_string, base_url="https://city.bibliotheek.be", account_id="acc"
+        )
+        assert len(loans) == 1
+        return loans[0]
+
+    def test_parse_loan_without_cover_img(self):
+        loan = self._parse_single_loan(self._loans_page("", self._FROM_TO))
+        assert loan.cover_url == ""
+        assert loan.title == "Titel"
+        assert loan.loan_till == datetime.date(2025, 2, 12)
+
+    def test_parse_loan_with_cover_img_without_src(self):
+        cover = '<img class="my-library-user-library-account-loans__loan-cover-img" />'
+        loan = self._parse_single_loan(self._loans_page(cover, self._FROM_TO))
+        assert loan.cover_url == ""
+        assert loan.title == "Titel"
+
+    def test_parse_loan_with_unexpected_date_format(self):
+        from_to = """
+            <div><span>Van</span><span>vandaag</span></div>
+            <div><span>Tot en met</span><span>12/02/2025</span></div>
+        """
+        loan = self._parse_single_loan(self._loans_page(self._COVER, from_to))
+        assert loan.loan_from is None
+        assert loan.loan_till is None
+        assert loan.title == "Titel"
+        assert loan.cover_url == "cover.jpg"
+
+    def test_parse_loan_with_missing_date_spans(self):
+        from_to = "<div><span>Van</span><span>15/01/2025</span></div>"
+        loan = self._parse_single_loan(self._loans_page(self._COVER, from_to))
+        assert loan.loan_from is None
+        assert loan.loan_till is None
+        assert loan.title == "Titel"
+
 
 class TestReservationsPageParser:
     def test_parse_account_reservations_page(self):
         # Happy flow test --> see doctest
         assert ReservationsPageParser().parse("") == []
         assert ReservationsPageParser().parse("bogus") == []
+
+    @staticmethod
+    def _holds_page(first_section: str, fourth_section: str) -> str:
+        return f"""
+            <div class="my-library-user-library-account-holds__hold-wrapper">
+              <div class="my-library-user-library-account-holds__hold card">
+                <div class="card--first-section">{first_section}</div>
+                <h2 class="catalog-item-small-teaser__title"><a href="https://x/item">Titel</a></h2>
+                <div class="my-library-user-library-account-holds__hold-fourth card--fourth-section">
+                  {fourth_section}
+                </div>
+              </div>
+            </div>
+        """
+
+    def test_parse_reservation_with_unexpected_date_formats(self):
+        html_string = self._holds_page(
+            "<p>Aangevraagd op gisteren</p><p>Aanvraag geldig tot onbepaald</p>",
+            "<h3>Klaar om af te halen</h3><p>Tot <strong>binnenkort</strong></p>",
+        )
+        (hold,) = ReservationsPageParser().parse(html_string)
+        assert hold.title == "Titel"
+        assert hold.request_on is None
+        assert hold.valid_till is None
+        assert hold.available is True
+        assert hold.available_till is None
+
+    def test_parse_reservation_valid_dates_still_parsed(self):
+        html_string = self._holds_page(
+            "<p>Aangevraagd op 25/11/2023</p><p>Aanvraag geldig tot 24/11/2024</p>",
+            "<h3>Klaar om af te halen</h3><p>Tot <strong>01/12/2023</strong></p>",
+        )
+        (hold,) = ReservationsPageParser().parse(html_string)
+        assert hold.request_on == datetime.date(2023, 11, 25)
+        assert hold.valid_till == datetime.date(2024, 11, 24)
+        assert hold.available_till == datetime.date(2023, 12, 1)
 
 
 class TestExtendResponsePageParser:
@@ -190,3 +288,18 @@ class TestExtendResponsePageParser:
             "count": 0,
             "extension_info": [],
         }
+
+
+class TestItemDetailParser:
+    def test_parse_item_without_cover_img(self):
+        html_string = """
+            <h1 class="catalog-item-full__title">Titel</h1>
+            <div class="catalog-item-full__image"></div>
+        """
+        item = ItemDetailParser().parse(html_string, url="https://x/item")
+        assert item.cover_url == ""
+        assert item.title == "Titel"
+
+    def test_parse_item_with_cover_img_without_src(self):
+        html_string = '<div class="catalog-item-full__image"><img alt="cover" /></div>'
+        assert ItemDetailParser().parse(html_string, url="https://x/item").cover_url == ""

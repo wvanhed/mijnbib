@@ -5,6 +5,9 @@ new: new feature /  impr: improvement /  fix: bug fix
 ## [unreleased]
 
 - impr: cli: more robust handling of missing parameters and error reporting
+- fix: retrieving loans, reservations or item info no longer fails completely
+  when a single item has no cover image or an unexpected date; only that field
+  is left empty
 
 ## v0.11.1 - 2026-09-14
 
