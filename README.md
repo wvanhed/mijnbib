@@ -199,7 +199,7 @@ activating the virtual environment before running the command.
 Running the tests, applying linting and code formatting can be done via:
 
 ```bash
-make dev    # fast tests, linting, formatting
+make dev    # markdown linting, fast tests, linting, formatting
 make all    # the above + more (see Makefile)
 ```
 

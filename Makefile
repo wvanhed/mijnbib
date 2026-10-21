@@ -1,4 +1,4 @@
-dev: format lint testfast
+dev: mdlint format lint testfast
 
 init:
 	uv sync
