@@ -6,7 +6,8 @@ def test_mijnbib_available_imports():
     import mijnbib
 
     # make sure we don't expose too few, or too much
-    imps = [i for i in dir(mijnbib) if not i.startswith("__")]
+    # `cli` is only an attribute once `mijnbib.cli` was imported (e.g. by test_cli.py)
+    imps = [i for i in dir(mijnbib) if not i.startswith("__") and i != "cli"]
     assert set(imps) == set(
         [
             "get_item_info",

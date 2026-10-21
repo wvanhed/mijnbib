@@ -12,6 +12,9 @@ import pprint as pp
 from mijnbib import AuthenticationError, MijnBibliotheek, __version__
 from mijnbib.const import CONFIG_FILE
 
+# parameters every subcommand needs; some subcommands need more
+_CREDENTIALS = ["username", "password"]
+
 
 def _do_login(args: argparse.Namespace):
     print("Trying to log in ...")
@@ -98,23 +101,25 @@ def main():
     parser_all = subparsers.add_parser(
         "all", parents=[common_parser], help="retrieve all information for all accounts"
     )
-    parser_all.set_defaults(func=_do_all)
+    parser_all.set_defaults(func=_do_all, required_params=_CREDENTIALS)
     parser_all = subparsers.add_parser(
         "accounts", parents=[common_parser], help="retrieve accounts"
     )
-    parser_all.set_defaults(func=_do_accounts)
+    parser_all.set_defaults(func=_do_accounts, required_params=_CREDENTIALS)
     parser_all = subparsers.add_parser(
         "loans", parents=[common_parser], help="retrieve loans for account id"
     )
-    parser_all.set_defaults(func=_do_loans)
+    parser_all.set_defaults(func=_do_loans, required_params=[*_CREDENTIALS, "accountid"])
     parser_all = subparsers.add_parser(
         "reservations", parents=[common_parser], help="retrieve reservations for account id"
     )
-    parser_all.set_defaults(func=_do_reservations)
+    parser_all.set_defaults(
+        func=_do_reservations, required_params=[*_CREDENTIALS, "accountid"]
+    )
     parser_all = subparsers.add_parser(
         "login", parents=[common_parser], help="just log in, and report if success or not"
     )
-    parser_all.set_defaults(func=_do_login)
+    parser_all.set_defaults(func=_do_login, required_params=_CREDENTIALS)
 
     # Add values from ini file as default values
     config = configparser.ConfigParser()
@@ -127,8 +132,7 @@ def main():
         logging.basicConfig(format="%(levelname)-7s %(message)s")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    required = ["username", "password"]
-    for r in required:
+    for r in args.required_params:
         if getattr(args, r) is None:
             # prints usage + message to stderr and exits with status 2
             parser.error(
