@@ -1,5 +1,7 @@
 import datetime
 
+import pytest
+
 from mijnbib.models import Loan
 from mijnbib.parsers import (
     ExtendResponsePageParser,
@@ -148,6 +150,28 @@ class TestLoansListPageParser:
         assert loan.loan_from is None
         assert loan.loan_till is None
         assert loan.title == "Titel"
+
+    @pytest.mark.parametrize(
+        ("extend_html", "expected"),
+        [
+            # no extend section at all
+            ("", (None, "", "")),
+            # extending not possible
+            ('<div class="card--extend-loan">Verlengen niet mogelijk</div>', (False, "", "")),
+            # extend section with neither a button nor a checkbox
+            ('<div class="card--extend-loan"><span>?</span></div>', (None, "", "")),
+            # button without loan-ids in the url
+            (
+                '<div class="card--extend-loan"><a href="/elders">Verleng</a></div>',
+                (None, "", ""),
+            ),
+        ],
+    )
+    def test_parse_loan_extend_edge_cases(self, extend_html, expected):
+        loan = self._parse_single_loan(
+            self._loans_page(self._COVER + extend_html, self._FROM_TO)
+        )
+        assert (loan.extendable, loan.extend_url, loan.extend_id) == expected
 
 
 class TestReservationsPageParser:

@@ -195,34 +195,29 @@ class LoansListPageParser(Parser):
             # IndexError: fewer spans than expected, ValueError: unexpected date format
             _log.warning("Unexpected html structure. Ignoring loan start and end date")
 
-        try:
-            extend_loan_div = loan_div.find("div", class_="card--extend-loan")
-            if extend_loan_div.get_text().strip() == "Verlengen niet mogelijk":
-                loan["extendable"] = False
-            elif extend_loan_div and extend_loan_div.find("a"):
-                # Case 1: UI where "Verleng" button is present
+        # When extendability can not be determined, `extendable` stays None (see Loan defaults)
+        extend_loan_div = loan_div.find("div", class_="card--extend-loan")
+        if extend_loan_div is None:
+            pass  # no extend section
+        elif extend_loan_div.get_text().strip() == "Verlengen niet mogelijk":
+            loan["extendable"] = False
+        elif extend_loan_div.a is not None:
+            # Case 1: UI where "Verleng" button is present
+            extend_url = urllib.parse.urljoin(base_url, extend_loan_div.a.get("href", ""))
+            if "loan-ids=" in extend_url:
                 loan["extendable"] = True
-                extend_url = extend_loan_div.a.get("href")  # type:ignore
-                extend_url = urllib.parse.urljoin(base_url, extend_url)  # type:ignore
                 loan["extend_url"] = extend_url
-                # loan["extend_id"] = extend_loan_div.input.get("id")
                 loan["extend_id"] = extend_url.split("loan-ids=")[1]
-            else:
-                # Case 2: UI where "Verleng" button is NOT present
-                loan["extendable"] = True
-                extend_id = extend_loan_div.input.get("id")
-                extend_url = (
-                    f"/mijn-bibliotheek/lidmaatschappen/{acc_id}/uitleningen/verlengen"
-                    + f"?loan-ids={extend_id}"
-                )
-                extend_url = urllib.parse.urljoin(base_url, extend_url)
-                loan["extend_url"] = extend_url
-                loan["extend_id"] = extend_id
-        except (AttributeError, IndexError):
-            # Note: IndexError is for extend_id handling from case 1
-            loan["extendable"] = None
-            loan["extend_url"] = ""
-            loan["extend_id"] = ""
+        elif extend_loan_div.input is not None:
+            # Case 2: UI where "Verleng" button is NOT present, but a checkbox is
+            extend_id = extend_loan_div.input.get("id")
+            extend_url = (
+                f"/mijn-bibliotheek/lidmaatschappen/{acc_id}/uitleningen/verlengen"
+                + f"?loan-ids={extend_id}"
+            )
+            loan["extendable"] = True
+            loan["extend_url"] = urllib.parse.urljoin(base_url, extend_url)
+            loan["extend_id"] = extend_id
 
         loan["branchname"] = branch
 
