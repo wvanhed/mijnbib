@@ -13,9 +13,6 @@ import sys
 from mijnbib import AuthenticationError, MijnbibError, MijnBibliotheek, __version__
 from mijnbib.const import CONFIG_FILE
 
-# parameters every subcommand needs; some subcommands need more
-_CREDENTIALS = ["username", "password"]
-
 
 def _do_login(args: argparse.Namespace):
     print("Trying to log in ...")
@@ -29,42 +26,32 @@ def _do_login(args: argparse.Namespace):
     print(f"Logged in: {mb._logged_in}")
 
 
-def _do_all(args: argparse.Namespace):
-    print("Retrieving all information ...")
+def _connect(
+    args: argparse.Namespace, what: str, show_account: bool = False
+) -> MijnBibliotheek:
+    print(f"Retrieving {what} ...")
     print(f"Username : {args.username}")
+    if show_account:
+        print(f"Account  : {args.accountid}")
+    return MijnBibliotheek(args.username, args.password, args.city)
 
-    mb = MijnBibliotheek(args.username, args.password, args.city)
-    result = mb.get_all_info()
-    pp.pprint(result)
+
+def _do_all(args: argparse.Namespace):
+    pp.pprint(_connect(args, "all information").get_all_info())
 
 
 def _do_accounts(args: argparse.Namespace):
-    print("Retrieving accounts ...")
-    print(f"Username : {args.username}")
-
-    mb = MijnBibliotheek(args.username, args.password, args.city)
-    result = mb.get_accounts()
-    pp.pprint(result)
+    pp.pprint(_connect(args, "accounts").get_accounts())
 
 
 def _do_loans(args: argparse.Namespace):
-    print("Retrieving loans ...")
-    print(f"Username : {args.username}")
-    print(f"Account  : {args.accountid}")
-
-    mb = MijnBibliotheek(args.username, args.password, args.city)
-    result = mb.get_loans(args.accountid)
-    pp.pprint(result)
+    mb = _connect(args, "loans", show_account=True)
+    pp.pprint(mb.get_loans(args.accountid))
 
 
 def _do_reservations(args: argparse.Namespace):
-    print("Retrieving reservations ...")
-    print(f"Username : {args.username}")
-    print(f"Account  : {args.accountid}")
-
-    mb = MijnBibliotheek(args.username, args.password, args.city)
-    result = mb.get_reservations(args.accountid)
-    pp.pprint(result)
+    mb = _connect(args, "reservations", show_account=True)
+    pp.pprint(mb.get_reservations(args.accountid))
 
 
 def main():
@@ -98,34 +85,28 @@ def main():
         version=f"%(prog)s {__version__}",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="show debug logging")
-    subparsers = parser.add_subparsers(required=True)
-    parser_all = subparsers.add_parser(
-        "all", parents=[common_parser], help="retrieve all information for all accounts"
-    )
-    parser_all.set_defaults(func=_do_all, required_params=_CREDENTIALS)
-    parser_all = subparsers.add_parser(
-        "accounts", parents=[common_parser], help="retrieve accounts"
-    )
-    parser_all.set_defaults(func=_do_accounts, required_params=_CREDENTIALS)
-    parser_all = subparsers.add_parser(
-        "loans", parents=[common_parser], help="retrieve loans for account id"
-    )
-    parser_all.set_defaults(func=_do_loans, required_params=[*_CREDENTIALS, "accountid"])
-    parser_all = subparsers.add_parser(
-        "reservations", parents=[common_parser], help="retrieve reservations for account id"
-    )
-    parser_all.set_defaults(
-        func=_do_reservations, required_params=[*_CREDENTIALS, "accountid"]
-    )
-    parser_all = subparsers.add_parser(
-        "login", parents=[common_parser], help="just log in, and report if success or not"
-    )
-    parser_all.set_defaults(func=_do_login, required_params=_CREDENTIALS)
-
-    # Add values from ini file as default values
+    # Add values from ini file as default values. Must be done before the
+    # subparsers are created, since they copy the defaults of their parent.
     config = configparser.ConfigParser()
     config.read(CONFIG_FILE)
     common_parser.set_defaults(**config.defaults())
+
+    subparsers = parser.add_subparsers(required=True)
+
+    def add_subcommand(name, help_, func, needs_account=False):
+        subparser = subparsers.add_parser(name, parents=[common_parser], help=help_)
+        subparser.set_defaults(func=func, needs_account=needs_account)
+
+    add_subcommand("all", "retrieve all information for all accounts", _do_all)
+    add_subcommand("accounts", "retrieve accounts", _do_accounts)
+    add_subcommand("loans", "retrieve loans for account id", _do_loans, needs_account=True)
+    add_subcommand(
+        "reservations",
+        "retrieve reservations for account id",
+        _do_reservations,
+        needs_account=True,
+    )
+    add_subcommand("login", "just log in, and report if success or not", _do_login)
 
     args = parser.parse_args()
 
@@ -133,7 +114,8 @@ def main():
         logging.basicConfig(format="%(levelname)-7s %(message)s")
         logging.getLogger().setLevel(logging.DEBUG)
 
-    for r in args.required_params:
+    required = ["username", "password"] + (["accountid"] if args.needs_account else [])
+    for r in required:
         if getattr(args, r) is None:
             # prints usage + message to stderr and exits with status 2
             parser.error(
