@@ -5,7 +5,7 @@ from typing import ClassVar
 
 import pytest
 
-from mijnbib import AuthenticationError, __version__, cli
+from mijnbib import AuthenticationError, TemporarySiteError, __version__, cli
 from mijnbib.const import CONFIG_FILE
 
 
@@ -14,6 +14,7 @@ class FakeMijnBibliotheek:
 
     instances: ClassVar[list[FakeMijnBibliotheek]] = []
     login_error: Exception | None = None
+    api_error: Exception | None = None  # raised by the get_* methods
 
     def __init__(self, username, password, city=None):
         self.username = username
@@ -29,19 +30,27 @@ class FakeMijnBibliotheek:
             raise FakeMijnBibliotheek.login_error
         self._logged_in = True
 
+    def _raise_api_error(self):
+        if FakeMijnBibliotheek.api_error is not None:
+            raise FakeMijnBibliotheek.api_error
+
     def get_all_info(self):
+        self._raise_api_error()
         self.calls.append(("get_all_info",))
         return {"all": "info"}
 
     def get_accounts(self):
+        self._raise_api_error()
         self.calls.append(("get_accounts",))
         return ["account"]
 
     def get_loans(self, account_id):
+        self._raise_api_error()
         self.calls.append(("get_loans", account_id))
         return ["loan"]
 
     def get_reservations(self, account_id):
+        self._raise_api_error()
         self.calls.append(("get_reservations", account_id))
         return ["reservation"]
 
@@ -52,6 +61,7 @@ def fake_mb(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     FakeMijnBibliotheek.instances = []
     FakeMijnBibliotheek.login_error = None
+    FakeMijnBibliotheek.api_error = None
     monkeypatch.setattr(cli, "MijnBibliotheek", FakeMijnBibliotheek)
     return FakeMijnBibliotheek
 
@@ -153,3 +163,25 @@ class TestCli:
         (mb,) = fake_mb.instances
         assert (mb.username, mb.password) == ("jane", "pwd")
         assert mb.calls == [("get_loans", "789")]
+
+    @pytest.mark.parametrize("subcommand", ["all", "accounts", "loans", "reservations"])
+    @pytest.mark.parametrize(
+        "error",
+        [AuthenticationError("wrong credentials"), TemporarySiteError("site is down")],
+    )
+    def test_api_error_is_reported_on_stderr(
+        self, monkeypatch, capsys, fake_mb, subcommand, error
+    ):
+        fake_mb.api_error = error
+        with pytest.raises(SystemExit) as exc_info:
+            run_cli(monkeypatch, subcommand, "-u", "john", "-p", "pwd", "-a", "123")
+        assert exc_info.value.code == 1
+        err = capsys.readouterr().err
+        assert str(error) in err
+        assert type(error).__name__ in err
+        assert "Traceback" not in err
+
+    def test_api_error_is_raised_when_verbose(self, monkeypatch, fake_mb):
+        fake_mb.api_error = TemporarySiteError("site is down")
+        with pytest.raises(TemporarySiteError):
+            run_cli(monkeypatch, "-v", "accounts", "-u", "john", "-p", "pwd")

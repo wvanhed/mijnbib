@@ -8,8 +8,9 @@ import argparse
 import configparser
 import logging
 import pprint as pp
+import sys
 
-from mijnbib import AuthenticationError, MijnBibliotheek, __version__
+from mijnbib import AuthenticationError, MijnbibError, MijnBibliotheek, __version__
 from mijnbib.const import CONFIG_FILE
 
 # parameters every subcommand needs; some subcommands need more
@@ -141,4 +142,10 @@ def main():
             )
 
     # call the appropriate subcommand
-    args.func(args)
+    try:
+        args.func(args)
+    except MijnbibError as e:
+        if args.verbose:
+            raise  # show full traceback when debugging
+        print(f"Error: {e} ({type(e).__name__})", file=sys.stderr)
+        sys.exit(1)
