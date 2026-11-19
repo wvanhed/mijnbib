@@ -2,7 +2,7 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
-## Unreleased
+## v0.12.0 — 2026-11-19
 
 - impr: drop support for python 3.9 (minimum is now python 3.10)
 - impr: upgrade dependencies (uv.lock)
