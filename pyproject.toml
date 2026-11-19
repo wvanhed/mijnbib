@@ -20,7 +20,7 @@ dependencies = [
     "requests>=2.32.3",
     "urllib3>=2.6.3" # security issue CVE-2026-21441
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 # [project.optional-dependencies]
 # dev = ["ruff >=0.4", "pytest"]

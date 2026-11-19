@@ -2,6 +2,11 @@
 
 new: new feature /  impr: improvement /  fix: bug fix
 
+## Unreleased
+
+- impr: drop support for python 3.9 (minimum is now python 3.10)
+- impr: upgrade dependencies (uv.lock)
+
 ## v0.11.2 - 2026-11-10
 
 - fix: retrieving loans, reservations or item info no longer fails completely
