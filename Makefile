@@ -3,7 +3,7 @@ dev: mdlint format lint testfast
 init:
 	uv sync
 
-all: clean init mdlint format lint test build biblist
+all: clean init mdlint format lint test check biblist
 
 clean:
 	rm -rf dist
@@ -40,10 +40,14 @@ testfast:
 build:
 	uv build
 
+# Validate built packages: metadata, and README rendering on PyPI
+check: build
+	uv run --with twine --no-project twine check --strict dist/*
+
 # (uv publish is still experimental, so we still use twine)
 # Always rebuilds first so dist/ can't contain stale artifacts from a
 # previous (already-published) version.
-publish: clean build
+publish: clean check
 	# uv run --with twine --with setuptools --no-project twine upload --repository testpypi dist/*
 	uv run --with twine --with setuptools --no-project twine upload dist/*
 
