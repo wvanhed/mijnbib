@@ -2,6 +2,12 @@
 
 Python API for bibliotheek.be (formerly mijn.bibliotheek.be)
 
+> 🇧🇪 **Nederlands** — Vraag je ontleende boeken, reservaties en vervaldata op
+> bij je Vlaamse of Brusselse openbare bibliotheek (Gent, Antwerpen, Leuven, ...)
+> en verleng je uitleningen automatisch vanuit Python. Werkt met je
+> gewone login van bibliotheek.be. Installeer met `pip install mijnbib`; de
+> voorbeelden hieronder zijn in het Engels.
+
 With this Python library you can retrieve your borrowed items, reservations and
 account information if you have an account on <https://bibliotheek.be>, the
 Flemish & Brussels public library network. You can also extend loans.
